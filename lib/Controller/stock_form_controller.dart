@@ -6,21 +6,15 @@ import 'package:stock_management/Controller/request_controller.dart';
 import 'package:stock_management/Controller/stock_controller.dart';
 import 'package:stock_management/Controller/stock_line.dart';
 import 'package:stock_management/Model/lookup_models.dart';
+import 'package:stock_management/Model/purchase_order_models.dart';
 import 'package:stock_management/Model/stock_models.dart';
 import 'package:stock_management/Services/api_exception.dart';
 import 'package:stock_management/Services/master_data_service.dart';
 import 'package:stock_management/Services/product_service.dart';
 import 'package:stock_management/Services/request_service.dart';
+import 'package:stock_management/View/Components/app_snackbar.dart';
 
 /// Shared behaviour of the stock-movement forms (Stock In / Stock Out,
-/// Transfer, Adjust): pick one or more existing products ([lines]) each with
-/// its warehouse from the server's list, validate, then either save straight to
-/// the API (people with STOCK_ADJUST) or send ONE request with an approval
-/// chain they pick themselves.
-///
-/// A subclass only says WHAT it sends: [requestType], [buildRequestBody] (for
-/// the request path) and [submitDirectLine] (for the direct path, when it
-/// has one).
 abstract class StockFormController extends GetxController {
   final _masterData = MasterDataService();
   final _requests = RequestService();
@@ -98,6 +92,46 @@ abstract class StockFormController extends GetxController {
     }
   }
 
+  /// The warehouse this line's units go INTO (Stock In, Transfer destination,
+  /// Adjust increase); null when the line only takes stock out.
+  LookupOption? incomingWarehouseOf(StockLine line) => null;
+
+  /// Units going into each warehouse (by code), summed over the lines.
+  /// Reads the lines' fields, so a widget using it rebuilds as they change.
+  Map<String, double> get incomingTotals {
+    final totals = <String, double>{};
+    for (final line in lines) {
+      final warehouse = incomingWarehouseOf(line);
+      final qty = line.enteredQty.value;
+      if (warehouse == null || qty == null || qty <= 0) continue;
+      totals[warehouse.code] = (totals[warehouse.code] ?? 0.0) + qty;
+    }
+    return totals;
+  }
+
+  final _capacityChecks = <String, Future<WarehouseCapacity?>>{};
+
+  /// How full [code] gets with [quantity] more units (null if it can't be
+  /// checked: the save is still checked by the server). Waits a moment so
+  /// typing a number does not ask the server for every digit.
+  Future<WarehouseCapacity?> capacityFor(String code, double quantity) {
+    return _capacityChecks.putIfAbsent('$code|$quantity', () async {
+      await Future.delayed(const Duration(milliseconds: 400));
+      try {
+        return await _masterData.capacityCheck(code, quantity);
+      } catch (_) {
+        return null;
+      }
+    });
+  }
+
+  String warehouseNameOf(String code) {
+    for (final w in warehouses) {
+      if (w.code == code) return w.name;
+    }
+    return code;
+  }
+
   /// The warehouse this line's stock is in (for Transfer: taken from).
   LookupOption? warehouseOf(StockLine line) => line.warehouse.value;
 
@@ -126,10 +160,21 @@ abstract class StockFormController extends GetxController {
 
   // ----------------------------------------------------------------- lifecycle
 
+  /// Set by the Scan screen right before it opens a stock form, so the first
+  /// line starts with the scanned product already chosen. Consumed (and
+  /// cleared) by the next form that opens.
+  static StockItemData? pendingProduct;
+
   @override
   void onInit() {
     super.onInit();
-    loadWarehouses();
+    final preselected = pendingProduct;
+    pendingProduct = null;
+    loadWarehouses().then((_) {
+      if (preselected != null && lines.isNotEmpty && lines.first.product.value == null) {
+        pickProduct(lines.first, preselected);
+      }
+    });
     if (needsApproval) {
       chain.start().then((_) => errorMessage.value ??= chain.loadError.value);
     }
@@ -235,7 +280,7 @@ abstract class StockFormController extends GetxController {
           await Get.find<RequestController>().load();
         }
         Get.offNamed(Routes.requests);
-        Get.snackbar('nav_requests'.tr, 'stock_request_sent_message'.tr, snackPosition: SnackPosition.BOTTOM);
+        AppSnackbar.success('nav_requests'.tr, 'stock_request_sent_message'.tr);
       } else {
         await _saveDirectly();
       }
@@ -246,10 +291,7 @@ abstract class StockFormController extends GetxController {
     }
   }
 
-  /// The direct path saves one line at a time (the API takes one product per
-  /// call), so it can stop half way. Lines that were saved are taken off the
-  /// form and the first one that failed stays, with its error, so that
-  /// "try again" never saves anything twice.
+  /// The direct path saves one line at a time (the API takes one product per call), so it can stop half way.
   Future<void> _saveDirectly() async {
     final all = List<StockLine>.of(lines);
     final saved = <StockLine>[];
@@ -270,7 +312,7 @@ abstract class StockFormController extends GetxController {
 
     if (failure == null) {
       Get.back();
-      Get.snackbar('nav_stock'.tr, savedMessage, snackPosition: SnackPosition.BOTTOM);
+      AppSnackbar.success('nav_stock'.tr, savedMessage);
       return;
     }
 

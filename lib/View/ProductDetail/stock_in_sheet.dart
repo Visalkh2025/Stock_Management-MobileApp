@@ -9,6 +9,7 @@ import 'package:stock_management/Services/product_service.dart';
 import 'package:stock_management/View/Components/app_button.dart';
 import 'package:stock_management/View/Components/app_picker_field.dart';
 import 'package:stock_management/View/Components/app_text_field.dart';
+import 'package:stock_management/View/Components/app_snackbar.dart';
 
 /// "Stock In" for a product that already exists: new goods arrived, add
 /// them to a warehouse. Sent as an INCREASE stock adjustment with the
@@ -103,7 +104,7 @@ class _StockInSheetState extends State<StockInSheet> {
       await widget.onDone();
       if (!mounted) return;
       Navigator.of(context).pop();
-      Get.snackbar('action_stock_in_title'.tr, 'stock_in_done_message'.tr, snackPosition: SnackPosition.BOTTOM);
+      AppSnackbar.success('action_stock_in_title'.tr, 'stock_in_done_message'.tr);
     } on ApiException catch (e) {
       if (!mounted) return;
       setState(() => _error = e.message);
@@ -133,10 +134,10 @@ class _StockInSheetState extends State<StockInSheet> {
             children: [
               Text(
                 'action_stock_in_title'.tr,
-                style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: AppColors.ink),
+                style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: AppColors.ink),
               ),
               const SizedBox(height: 2),
-              Text(widget.product.name, style: const TextStyle(fontSize: 12.5, color: AppColors.muted)),
+              Text(widget.product.name, style: TextStyle(fontSize: 12.5, color: AppColors.muted)),
               const SizedBox(height: 16),
               if (widget.product.hasVariants) ...[
                 AppPickerField(
@@ -154,7 +155,7 @@ class _StockInSheetState extends State<StockInSheet> {
                 options: _warehouses,
                 isLoading: _loadingWarehouses,
                 required: true,
-                prefixIcon: const Icon(Icons.store_outlined, size: 20, color: AppColors.textTertiary),
+                prefixIcon: Icon(Icons.store_outlined, size: 20, color: AppColors.textTertiary),
                 onChanged: (v) => setState(() => _warehouse = v),
               ),
               const SizedBox(height: 14),
@@ -170,11 +171,11 @@ class _StockInSheetState extends State<StockInSheet> {
                 label: 'field_location'.tr,
                 controller: _locationController,
                 hintText: 'hint_location_example'.tr,
-                prefixIcon: const Icon(Icons.place_outlined, size: 20, color: AppColors.textTertiary),
+                prefixIcon: Icon(Icons.place_outlined, size: 20, color: AppColors.textTertiary),
               ),
               if (_error != null) ...[
                 const SizedBox(height: 12),
-                Text(_error!, style: const TextStyle(fontSize: 12.5, color: AppColors.danger)),
+                Text(_error!, style: TextStyle(fontSize: 12.5, color: AppColors.danger)),
               ],
               const SizedBox(height: 18),
               AppButton(label: 'action_save'.tr, onPressed: _save, isLoading: _saving),

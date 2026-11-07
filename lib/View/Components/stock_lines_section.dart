@@ -79,7 +79,7 @@ class _LineCard extends StatelessWidget {
           isLoading: controller.isLoadingWarehouses.value,
           required: true,
           allowClear: false,
-          prefixIcon: const Icon(Icons.warehouse_outlined, size: 20, color: AppColors.textTertiary),
+          prefixIcon: Icon(Icons.warehouse_outlined, size: 20, color: AppColors.textTertiary),
           onChanged: (v) => line.warehouse.value = v,
         ),
       ),
@@ -107,7 +107,7 @@ class _LineCard extends StatelessWidget {
                   Expanded(
                     child: Text(
                       'label_product_n'.trParams({'n': '${index + 1}'}).toUpperCase(),
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 11.5,
                         fontWeight: FontWeight.w700,
                         color: AppColors.textTertiary,
@@ -118,7 +118,7 @@ class _LineCard extends StatelessWidget {
                   InkWell(
                     onTap: () => controller.removeLine(line),
                     borderRadius: BorderRadius.circular(10),
-                    child: const Padding(
+                    child: Padding(
                       padding: EdgeInsets.all(4),
                       child: Icon(Icons.delete_outline_rounded, size: 20, color: AppColors.danger),
                     ),
@@ -188,7 +188,7 @@ class _ImpactView extends StatelessWidget {
         Row(
           children: [
             Expanded(child: _stat(impact.leftLabel, impact.leftValue, AppColors.ink, AppColors.pageBg)),
-            const Padding(
+            Padding(
               padding: EdgeInsets.symmetric(horizontal: 10),
               child: Icon(Icons.arrow_forward_rounded, size: 16, color: AppColors.textTertiary),
             ),
@@ -202,12 +202,12 @@ class _ImpactView extends StatelessWidget {
             decoration: BoxDecoration(color: AppColors.warningBg, borderRadius: BorderRadius.circular(10)),
             child: Row(
               children: [
-                const Icon(Icons.warning_amber_rounded, size: 15, color: AppColors.warning),
+                Icon(Icons.warning_amber_rounded, size: 15, color: AppColors.warning),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
                     impact.warning!,
-                    style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w600, color: AppColors.warning),
+                    style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w600, color: AppColors.warning),
                   ),
                 ),
               ],
@@ -227,7 +227,7 @@ class _ImpactView extends StatelessWidget {
         children: [
           Text(
             label.toUpperCase(),
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 10,
               fontWeight: FontWeight.w700,
               color: AppColors.textTertiary,
@@ -266,14 +266,14 @@ class _StoredIn extends StatelessWidget {
         child: stored.isEmpty
             ? Text(
                 'hint_not_stored_yet'.tr,
-                style: const TextStyle(fontSize: 11.5, color: AppColors.muted),
+                style: TextStyle(fontSize: 11.5, color: AppColors.muted),
               )
             : Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     'label_stored_in'.tr,
-                    style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w600, color: AppColors.muted),
+                    style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w600, color: AppColors.muted),
                   ),
                   const SizedBox(height: 6),
                   Wrap(

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Middle of the app's purple gradient: the system launch screen uses it
+         so it blends into the Flutter splash instead of showing a black/white
+         screen with the app icon. -->
+    <color name="splash_purple">#7240D4</color>
+</resources>

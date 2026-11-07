@@ -42,7 +42,7 @@ class AppTextField extends StatelessWidget {
       children: [
         Text(
           label,
-          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.muted),
+          style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.muted),
         ),
         const SizedBox(height: 6),
         TextFormField(
@@ -52,28 +52,28 @@ class AppTextField extends StatelessWidget {
           validator: validator,
           maxLines: maxLines,
           enabled: enabled,
-          style: const TextStyle(fontSize: 13.5, color: AppColors.ink),
+          style: TextStyle(fontSize: 13.5, color: AppColors.ink),
           decoration: InputDecoration(
             hintText: hintText,
-            hintStyle: const TextStyle(color: AppColors.muted),
+            hintStyle: TextStyle(color: AppColors.muted),
             helperText: helperText,
-            helperStyle: const TextStyle(fontSize: 10.5, fontWeight: FontWeight.w500, color: AppColors.muted),
+            helperStyle: TextStyle(fontSize: 10.5, fontWeight: FontWeight.w500, color: AppColors.muted),
             helperMaxLines: 2,
             filled: true,
             fillColor: fillColor ?? AppColors.pageBg,
             suffixIcon: suffixIcon,
             prefixIcon: prefixIcon,
             prefixText: prefixText,
-            prefixStyle: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.w600, color: AppColors.ink),
+            prefixStyle: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w600, color: AppColors.ink),
             isDense: true,
             contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: AppColors.border),
+              borderSide: BorderSide(color: AppColors.border),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: AppColors.border),
+              borderSide: BorderSide(color: AppColors.border),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
@@ -81,7 +81,7 @@ class AppTextField extends StatelessWidget {
             ),
             errorBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: AppColors.danger),
+              borderSide: BorderSide(color: AppColors.danger),
             ),
           ),
         ),

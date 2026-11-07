@@ -4,12 +4,10 @@ import 'package:stock_management/Config/theme/app_theme.dart';
 import 'package:stock_management/Controller/reports_controller.dart';
 import 'package:stock_management/View/Components/app_button.dart';
 import 'package:stock_management/View/Components/app_screen_header.dart';
+import 'package:stock_management/View/Components/date_filter_bar.dart';
 import 'package:stock_management/View/Components/stock_movement_chart.dart';
 
-/// More > Reports — a Dashboard/KPI screen (design system pattern #4):
-/// a stat-card grid, one chart, one breakdown list below. Everything here
-/// reads from Home/Stock/Requests' existing demo data (see
-/// [ReportsController]) rather than a separate reports API.
+/// More > Reports — a Dashboard/KPI screen (design system pattern #4): a stat-card grid, one chart, one breakdown list below.
 class ReportsScreen extends GetView<ReportsController> {
   const ReportsScreen({super.key});
 
@@ -30,6 +28,12 @@ class ReportsScreen extends GetView<ReportsController> {
                     const SizedBox(height: 10),
                     _kpiGrid,
                     const SizedBox(height: 18),
+                    DateFilterBar(
+                      value: controller.dateFilter.value,
+                      onChanged: controller.setDateFilter,
+                      showAll: false,
+                    ),
+                    const SizedBox(height: 12),
                     _chartCard,
                     const SizedBox(height: 18),
                     _sectionLabel('section_requests_by_type'.tr),
@@ -81,7 +85,7 @@ class ReportsScreen extends GetView<ReportsController> {
   Widget _sectionLabel(String text) {
     return Text(
       text.toUpperCase(),
-      style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700, color: AppColors.textTertiary, letterSpacing: 0.4),
+      style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700, color: AppColors.textTertiary, letterSpacing: 0.4),
     );
   }
 
@@ -164,9 +168,9 @@ class ReportsScreen extends GetView<ReportsController> {
             child: Icon(icon, size: 16, color: iconColor),
           ),
           const SizedBox(height: 10),
-          Text(value, style: const TextStyle(fontSize: 19, fontWeight: FontWeight.w800, color: AppColors.ink)),
+          Text(value, style: TextStyle(fontSize: 19, fontWeight: FontWeight.w800, color: AppColors.ink)),
           const SizedBox(height: 2),
-          Text(label, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.muted)),
+          Text(label, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.muted)),
         ],
       ),
     );
@@ -186,8 +190,8 @@ class ReportsScreen extends GetView<ReportsController> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('stock_movement'.tr, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: AppColors.ink)),
-              Text('last_7_days'.tr, style: const TextStyle(fontSize: 10.5, fontWeight: FontWeight.w600, color: AppColors.muted)),
+              Text('stock_movement'.tr, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: AppColors.ink)),
+              Text(controller.dateFilter.value.rangeLabel, style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.w600, color: AppColors.muted)),
             ],
           ),
           const SizedBox(height: 10),
@@ -199,22 +203,33 @@ class ReportsScreen extends GetView<ReportsController> {
             ],
           ),
           const SizedBox(height: 10),
-          StockMovementChart(inSeries: controller.stockInSeries, outSeries: controller.stockOutSeries),
-          const SizedBox(height: 6),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              for (var i = 0; i < controller.weekdayLabels.length; i++)
-                Text(
-                  controller.weekdayLabels[i],
-                  style: TextStyle(
-                    fontSize: 9.5,
-                    fontWeight: i == controller.highlightedWeekdayIndex ? FontWeight.w700 : FontWeight.w600,
-                    color: i == controller.highlightedWeekdayIndex ? AppColors.brand700 : AppColors.muted,
+          if (controller.chartLoading.value)
+            const SizedBox(height: 86, child: Center(child: CircularProgressIndicator(strokeWidth: 2)))
+          else if (controller.chartEmpty)
+            SizedBox(
+              height: 86,
+              child: Center(
+                child: Text('chart_empty'.tr, style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w600, color: AppColors.muted)),
+              ),
+            )
+          else ...[
+            StockMovementChart(inSeries: controller.stockInSeries.toList(), outSeries: controller.stockOutSeries.toList()),
+            const SizedBox(height: 6),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                for (var i = 0; i < controller.chartLabels.length; i++)
+                  Text(
+                    controller.chartLabels[i],
+                    style: TextStyle(
+                      fontSize: 9.5,
+                      fontWeight: i == controller.highlightedIndex ? FontWeight.w700 : FontWeight.w600,
+                      color: i == controller.highlightedIndex ? AppColors.brand700 : AppColors.muted,
+                    ),
                   ),
-                ),
-            ],
-          ),
+              ],
+            ),
+          ],
         ],
       ),
     );
@@ -226,7 +241,7 @@ class ReportsScreen extends GetView<ReportsController> {
       children: [
         Container(width: 8, height: 8, decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
         const SizedBox(width: 6),
-        Text(label, style: const TextStyle(fontSize: 10.5, fontWeight: FontWeight.w600, color: AppColors.muted)),
+        Text(label, style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.w600, color: AppColors.muted)),
       ],
     );
   }
@@ -273,8 +288,8 @@ class ReportsScreen extends GetView<ReportsController> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(label, style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700, color: AppColors.ink)),
-            Text('$count', style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w800, color: AppColors.brand700)),
+            Text(label, style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700, color: AppColors.ink)),
+            Text('$count', style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w800, color: AppColors.brand700)),
           ],
         ),
         const SizedBox(height: 6),

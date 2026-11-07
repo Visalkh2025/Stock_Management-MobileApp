@@ -3,15 +3,13 @@ import 'package:get/get.dart';
 import 'package:stock_management/Model/purchase_order_models.dart';
 import 'package:stock_management/Services/api_exception.dart';
 import 'package:stock_management/Services/purchase_order_service.dart';
+import 'package:stock_management/View/PurchaseOrders/po_short_dialog.dart';
+import 'package:stock_management/View/Components/app_snackbar.dart';
 
 /// How a counted quantity compares with what was still to come.
 enum ReceiveMatch { uncounted, match, short, over }
 
-/// Goods receiving for one purchase order (`Get.arguments` is its
-/// [PurchaseOrderDetail]). The fields start EMPTY on purpose: the person
-/// counts what actually arrived and types it in (0 if none), and each line
-/// shows at once whether it matches the order, is short, or is over. Confirm
-/// once; the server then records the receipt and adds the stock.
+/// Goods receiving for one purchase order (`Get.arguments` is its [PurchaseOrderDetail]).
 class GoodsReceivingController extends GetxController {
   final _service = PurchaseOrderService();
 
@@ -26,6 +24,14 @@ class GoodsReceivingController extends GetxController {
 
   /// The number typed in each field (null while empty / not a number).
   final Map<String, RxnDouble> entered = {};
+
+  /// Where each line was put away in the warehouse (optional).
+  late final Map<String, TextEditingController> locations = {
+    for (final i in items) i.id: TextEditingController(),
+  };
+
+  /// How the delivery went, 1-5 (0 = not rated).
+  final rating = 0.obs;
 
   final noteController = TextEditingController();
   final formKey = GlobalKey<FormState>();
@@ -78,21 +84,45 @@ class GoodsReceivingController extends GetxController {
 
     final rows = [
       for (final i in items)
-        if ((entered[i.id]?.value ?? 0) > 0) {'itemId': i.id, 'quantity': entered[i.id]!.value},
+        if ((entered[i.id]?.value ?? 0) > 0)
+          {
+            'itemId': i.id,
+            'quantity': entered[i.id]!.value,
+            if (locations[i.id]!.text.trim().isNotEmpty) 'location': locations[i.id]!.text.trim(),
+          },
     ];
     if (rows.isEmpty) {
       errorMessage.value = 'po_receive_nothing'.tr;
       return;
     }
 
+    // Short lines: ask why, and whether the rest is still coming.
+    final shortLines = items.where((i) => matchOf(i) == ReceiveMatch.short).toList();
+    PoShortResult? shortResult;
+    if (shortLines.isNotEmpty) {
+      shortResult = await Get.dialog<PoShortResult>(
+        PoShortDialog(lines: [for (final i in shortLines) (item: i, gap: gapOf(i))]),
+      );
+      if (shortResult == null) return;
+    }
+
     isSaving.value = true;
     try {
-      await _service.receive(order.id, items: rows, note: noteController.text);
+      await _service.receive(
+        order.id,
+        items: rows,
+        issues: [
+          for (final i in shortLines)
+            {'itemId': i.id, 'reason': shortResult?.reasons[i.id] ?? 'NOT_ARRIVED', 'quantity': gapOf(i)},
+        ],
+        closeAfter: shortResult?.close ?? false,
+        rating: rating.value > 0 ? rating.value : null,
+        note: noteController.text,
+      );
       Get.back();
-      Get.snackbar(
+      AppSnackbar.success(
         'po_receiving_title'.tr,
         'po_received_message'.tr,
-        snackPosition: SnackPosition.BOTTOM,
       );
     } on ApiException catch (e) {
       errorMessage.value = e.message;
@@ -104,6 +134,9 @@ class GoodsReceivingController extends GetxController {
   @override
   void onClose() {
     for (final c in fields.values) {
+      c.dispose();
+    }
+    for (final c in locations.values) {
       c.dispose();
     }
     noteController.dispose();

@@ -8,10 +8,7 @@ import 'package:stock_management/Model/team_member_models.dart';
 import 'package:stock_management/View/Components/app_screen_header.dart';
 import 'package:stock_management/View/Components/swipe_actions.dart';
 
-/// More > Team Members — flat searchable list, "+Add" in the header, and
-/// an edit/delete action on each row. Add/Edit both land on
-/// TeamMemberFormScreen (see TeamMembersController.openAdd/openEdit).
-/// Same shape as Manage > Categories/Suppliers/Warehouses.
+/// More > Team Members — flat searchable list, "+Add" in the header, and an edit/delete action on each row.
 class TeamMembersScreen extends GetView<TeamMembersController> {
   const TeamMembersScreen({super.key});
 
@@ -123,11 +120,7 @@ class TeamMembersScreen extends GetView<TeamMembersController> {
         borderRadius: BorderRadius.circular(12),
       ),
       alignment: Alignment.centerLeft,
-      // prefixIcon pins the icon to the field's far-left edge, so a merely
-      // centered hint ends up centered in the space *after* it — a visible
-      // gap between icon and text. IntrinsicWidth instead shrinks the whole
-      // icon+field group to its content, so Center can center that group as
-      // one unit and the hint sits right next to the icon.
+      // prefixIcon pins the icon to the field's far-left edge, so a merely centered hint ends up centered in the space *after* it — a visible gap between icon and text.
       child: IntrinsicWidth(
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -191,7 +184,7 @@ class TeamMembersScreen extends GetView<TeamMembersController> {
             ),
           ),
           const SizedBox(height: 10),
-          const Divider(height: 1, thickness: 1, color: AppColors.border),
+          Divider(height: 1, thickness: 1, color: AppColors.border),
           const SizedBox(height: 10),
           Row(
             children: [
@@ -205,7 +198,7 @@ class TeamMembersScreen extends GetView<TeamMembersController> {
                 alignment: Alignment.center,
                 child: Text(
                   item.initials,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w700,
                     color: AppColors.brand700,
@@ -220,7 +213,7 @@ class TeamMembersScreen extends GetView<TeamMembersController> {
                   children: [
                     Text(
                       item.name,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 13.5,
                         fontWeight: FontWeight.w700,
                         color: AppColors.ink,
@@ -231,7 +224,7 @@ class TeamMembersScreen extends GetView<TeamMembersController> {
                     const SizedBox(height: 2),
                     Text(
                       item.email,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 11.5,
                         color: AppColors.muted,
                       ),
@@ -260,17 +253,17 @@ class TeamMembersScreen extends GetView<TeamMembersController> {
       padding: const EdgeInsets.only(top: 60),
       child: Column(
         children: [
-          const Icon(Icons.cloud_off_rounded, size: 36, color: AppColors.textTertiary),
+          Icon(Icons.cloud_off_rounded, size: 36, color: AppColors.textTertiary),
           const SizedBox(height: 10),
           Text(
             'team_members_load_failed_title'.tr,
-            style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.w700, color: AppColors.muted),
+            style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w700, color: AppColors.muted),
           ),
           const SizedBox(height: 4),
           Text(
             message,
             textAlign: TextAlign.center,
-            style: const TextStyle(fontSize: 12, color: AppColors.textTertiary),
+            style: TextStyle(fontSize: 12, color: AppColors.textTertiary),
           ),
           const SizedBox(height: 8),
           TextButton(
@@ -290,7 +283,7 @@ class TeamMembersScreen extends GetView<TeamMembersController> {
       padding: const EdgeInsets.only(top: 60),
       child: Column(
         children: [
-          const Icon(
+          Icon(
             Icons.groups_outlined,
             size: 36,
             color: AppColors.textTertiary,
@@ -298,7 +291,7 @@ class TeamMembersScreen extends GetView<TeamMembersController> {
           const SizedBox(height: 10),
           Text(
             'empty_team_members_title'.tr,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 13.5,
               fontWeight: FontWeight.w700,
               color: AppColors.muted,
@@ -307,7 +300,7 @@ class TeamMembersScreen extends GetView<TeamMembersController> {
           const SizedBox(height: 4),
           Text(
             'empty_team_members_hint'.tr,
-            style: const TextStyle(fontSize: 12, color: AppColors.textTertiary),
+            style: TextStyle(fontSize: 12, color: AppColors.textTertiary),
           ),
         ],
       ),

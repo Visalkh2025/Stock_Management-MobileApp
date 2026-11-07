@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -10,6 +12,7 @@ import 'package:stock_management/Model/stock_models.dart';
 import 'package:stock_management/Services/api_exception.dart';
 import 'package:stock_management/Services/master_data_service.dart';
 import 'package:stock_management/Services/purchase_order_service.dart';
+import 'package:stock_management/View/Components/app_snackbar.dart';
 
 /// One product row of a purchase order: product (+ variant), quantity and the
 /// price per unit. Reuses [StockLine] for the product / variant / quantity.
@@ -30,6 +33,9 @@ class PoLine {
   final skuController = TextEditingController();
   final unitController = TextEditingController(text: 'PCS');
   final category = Rxn<LookupOption>();
+
+  /// Optional brand of the new product.
+  final brand = Rxn<LookupOption>();
 
   void setNew(bool value) {
     if (isNew.value == value) return;
@@ -54,6 +60,7 @@ class PoLine {
         'newProduct': {
           'name': nameController.text.trim(),
           'categoryCode': category.value!.code,
+          if (brand.value != null) 'brandCode': brand.value!.code,
           'unit': unitController.text.trim().isEmpty ? 'PCS' : unitController.text.trim(),
           if (sku.isNotEmpty) 'sku': sku,
         }
@@ -91,10 +98,36 @@ class PoLine {
   }
 }
 
+/// A supplier that the products on this order were bought from before.
+class SupplierSuggestion {
+  SupplierSuggestion(this.code, this.name);
+
+  final String code;
+  final String name;
+
+  /// How many of the order's products this supplier has supplied.
+  int products = 0;
+  DateTime? lastOrderedAt;
+
+  /// The usual supplier set on one of the order's products.
+  bool isDefault = false;
+}
+
 /// Create / edit a purchase order. `Get.arguments` is the
 /// [PurchaseOrderDetail] being edited, or null for a new one.
 class PurchaseOrderFormController extends GetxController {
-  PurchaseOrderDetail? get original => Get.arguments as PurchaseOrderDetail?;
+  PurchaseOrderDetail? get original {
+    final a = Get.arguments;
+    return a is PurchaseOrderDetail ? a : null;
+  }
+
+  /// Set when the form is opened from the reorder flow (product + supplier
+  /// already chosen) instead of editing an existing order.
+  PoPrefill? get prefill {
+    final a = Get.arguments;
+    return a is PoPrefill ? a : null;
+  }
+
   bool get isEditing => original != null;
 
   final _service = PurchaseOrderService();
@@ -106,6 +139,7 @@ class PurchaseOrderFormController extends GetxController {
   final suppliers = <LookupOption>[].obs;
   final warehouses = <LookupOption>[].obs;
   final categories = <LookupOption>[].obs;
+  final brands = <LookupOption>[].obs;
   final supplier = Rxn<LookupOption>();
   final warehouse = Rxn<LookupOption>();
   final lines = <PoLine>[].obs;
@@ -115,6 +149,42 @@ class PurchaseOrderFormController extends GetxController {
   bool get needsApprover => !can(Perm.poApprove);
   final approvers = <LookupOption>[].obs;
   final approver = Rxn<LookupOption>();
+
+  /// How full the chosen warehouse gets with this order (null until a
+  /// warehouse is chosen). Refreshed shortly after the warehouse or any
+  /// quantity changes.
+  final capacityInfo = Rxn<WarehouseCapacity>();
+
+  /// The form's scroll position and the capacity banner, so a tap on Submit
+  /// while the warehouse is full can take the user to the banner explaining why.
+  final scrollController = ScrollController();
+  final capacityKey = GlobalKey();
+
+  void showCapacityStatus() {
+    final context = capacityKey.currentContext;
+    if (context != null) {
+      Scrollable.ensureVisible(
+        context,
+        alignment: 0.1,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeOut,
+      );
+    } else if (scrollController.hasClients) {
+      scrollController.animateTo(0, duration: const Duration(milliseconds: 300), curve: Curves.easeOut);
+    }
+  }
+  Timer? _capacityTimer;
+  int _capacityRequest = 0;
+  final _watchedLines = <PoLine>{};
+  final _lineWatchers = <StreamSubscription<dynamic>>[];
+
+  /// Suppliers the order's products were bought from before (best first),
+  /// and how many distinct catalogue products the order has.
+  final supplierSuggestions = <SupplierSuggestion>[].obs;
+  final suggestionProductCount = 0.obs;
+  final _historyCache = <String, SupplierHistory>{};
+  Timer? _suggestTimer;
+  int _suggestRequest = 0;
 
   final isLoading = false.obs;
   final isSaving = false.obs;
@@ -129,7 +199,99 @@ class PurchaseOrderFormController extends GetxController {
   @override
   void onInit() {
     super.onInit();
+    ever(lines, (_) => _watchLines());
+    ever(warehouse, (_) => _scheduleCapacityCheck());
     _load();
+  }
+
+  void _watchLines() {
+    for (final l in lines) {
+      if (_watchedLines.add(l)) {
+        _lineWatchers.add(l.line.enteredQty.listen((_) => _scheduleCapacityCheck()));
+        _lineWatchers.add(l.line.product.listen((_) => _scheduleSuggestions()));
+      }
+    }
+    _scheduleCapacityCheck();
+    _scheduleSuggestions();
+  }
+
+  void _scheduleSuggestions() {
+    _suggestTimer?.cancel();
+    _suggestTimer = Timer(const Duration(milliseconds: 400), _loadSuggestions);
+  }
+
+  /// Looks up who each product on the order was bought from before and
+  /// ranks the suppliers: most of the order's products first, then the most
+  /// recent order.
+  Future<void> _loadSuggestions() async {
+    final ids = <String>{
+      for (final l in lines)
+        if (!l.isNew.value && l.line.product.value?.id != null) l.line.product.value!.id!,
+    };
+    final request = ++_suggestRequest;
+    if (ids.isEmpty) {
+      suggestionProductCount.value = 0;
+      supplierSuggestions.clear();
+      return;
+    }
+    try {
+      for (final id in ids) {
+        if (!_historyCache.containsKey(id)) {
+          _historyCache[id] = await _service.fetchSupplierHistory(id);
+        }
+      }
+    } on ApiException {
+      return;
+    }
+    if (request != _suggestRequest) return;
+
+    final byCode = <String, SupplierSuggestion>{};
+    for (final id in ids) {
+      for (final offer in _historyCache[id]!.suppliers) {
+        if (!offer.hasHistory && !offer.isDefault) continue;
+        final s = byCode.putIfAbsent(offer.code, () => SupplierSuggestion(offer.code, offer.name));
+        if (offer.isDefault) s.isDefault = true;
+        if (!offer.hasHistory) continue;
+        s.products++;
+        final at = offer.lastOrderedAt;
+        if (at != null && (s.lastOrderedAt == null || at.isAfter(s.lastOrderedAt!))) s.lastOrderedAt = at;
+      }
+    }
+    final list = byCode.values.toList()
+      ..sort((a, b) {
+        final byCount = b.products.compareTo(a.products);
+        if (byCount != 0) return byCount;
+        return (b.lastOrderedAt ?? DateTime(0)).compareTo(a.lastOrderedAt ?? DateTime(0));
+      });
+    suggestionProductCount.value = ids.length;
+    supplierSuggestions.assignAll(list.take(3));
+  }
+
+  /// Picks a suggested supplier in the form.
+  void useSupplier(SupplierSuggestion s) {
+    final option = _byCode(suppliers, s.code);
+    if (option != null) supplier.value = option;
+  }
+
+  void _scheduleCapacityCheck() {
+    _capacityTimer?.cancel();
+    _capacityTimer = Timer(const Duration(milliseconds: 500), _checkCapacity);
+  }
+
+  Future<void> _checkCapacity() async {
+    final wh = warehouse.value;
+    if (wh == null) {
+      capacityInfo.value = null;
+      return;
+    }
+    final quantity = lines.fold<double>(0, (sum, l) => sum + (l.line.enteredQty.value ?? 0));
+    final request = ++_capacityRequest;
+    try {
+      final info = await _service.checkWarehouse(wh.code, quantity, excludeId: original?.id);
+      if (request == _capacityRequest) capacityInfo.value = info;
+    } on ApiException {
+      if (request == _capacityRequest) capacityInfo.value = null;
+    }
   }
 
   Future<void> _load() async {
@@ -139,10 +301,12 @@ class PurchaseOrderFormController extends GetxController {
         _masterData.suppliers(),
         _masterData.warehouses(),
         _masterData.categories(),
+        _masterData.brands(),
       ]);
       suppliers.assignAll(results[0]);
       warehouses.assignAll(results[1]);
       categories.assignAll(results[2]);
+      brands.assignAll(results[3]);
       if (needsApprover) {
         final list = await _service.fetchApprovers();
         approvers.assignAll([
@@ -151,6 +315,7 @@ class PurchaseOrderFormController extends GetxController {
       }
       if (catalog.allItems.isEmpty) await catalog.load();
       _fillFromOriginal();
+      _fillFromPrefill();
     } on ApiException catch (e) {
       errorMessage.value = e.message;
     } finally {
@@ -174,6 +339,7 @@ class PurchaseOrderFormController extends GetxController {
         line.skuController.text = item.newSku ?? '';
         line.unitController.text = item.newUnit ?? 'PCS';
         line.category.value = _byCode(categories, item.newCategoryCode ?? '');
+        line.brand.value = _byCode(brands, item.newBrandCode ?? '');
         line.line.quantityController.text = formatQty(item.quantity);
         line.priceController.text = item.unitPrice.toStringAsFixed(2);
         lines.add(line);
@@ -192,6 +358,91 @@ class PurchaseOrderFormController extends GetxController {
       line.line.quantityController.text = formatQty(item.quantity);
       line.priceController.text = item.unitPrice.toStringAsFixed(2);
       lines.add(line);
+    }
+  }
+
+  void _fillFromPrefill() {
+    final pre = prefill;
+    if (pre == null) return;
+    if (pre.supplierCode != null) supplier.value = _byCode(suppliers, pre.supplierCode!);
+    for (final l in pre.lines) {
+      StockItemData? product;
+      for (final p in catalog.allItems) {
+        if (p.code == l.productCode) product = p;
+      }
+      if (product == null) continue;
+      final line = PoLine();
+      line.line.selectProduct(product);
+      line.line.quantityController.text = '${l.quantity}';
+      if (l.price != null) line.priceController.text = l.price!.toStringAsFixed(2);
+      lines.add(line);
+    }
+  }
+
+  /// Product codes already in the order (existing products only).
+  Set<String> get existingCodes => {
+        for (final l in lines)
+          if (!l.isNew.value && l.line.product.value?.code != null) l.line.product.value!.code!,
+      };
+
+  /// Adds the low / out-of-stock products picked in the sheet, each with its
+  /// suggested quantity. Returns how many were added and how many were left
+  /// out because the app does not have that product loaded.
+  ({int added, int skipped}) addReorderItems(List<ReorderItem> picked) {
+    final byCode = <String, StockItemData>{
+      for (final p in catalog.allItems)
+        if ((p.code ?? '').isNotEmpty) p.code!: p,
+    };
+
+    // The empty line a new form starts with is replaced by the added ones.
+    lines.removeWhere((l) {
+      final blank = !l.isNew.value &&
+          l.line.product.value == null &&
+          l.line.quantityController.text.trim().isEmpty;
+      if (blank) l.dispose();
+      return blank;
+    });
+
+    var added = 0;
+    var skipped = 0;
+    for (final r in picked) {
+      final product = byCode[r.code];
+      if (product == null) {
+        skipped++;
+        continue;
+      }
+      if (existingCodes.contains(r.code)) continue;
+      final line = PoLine();
+      line.line.selectProduct(product);
+      line.line.quantityController.text = '${r.suggestedQuantity > 0 ? r.suggestedQuantity : 1}';
+      lines.add(line);
+      added++;
+    }
+
+    if (lines.isEmpty) addLine();
+    _autoPickSupplier(picked);
+    return (added: added, skipped: skipped);
+  }
+
+  /// Supplier still empty and every added product has the same usual
+  /// supplier -> pick it.
+  Future<void> _autoPickSupplier(List<ReorderItem> picked) async {
+    if (supplier.value != null || picked.isEmpty) return;
+    try {
+      final codes = <String?>{};
+      for (final r in picked) {
+        final history = _historyCache[r.productId] ??= await _service.fetchSupplierHistory(r.productId);
+        String? usual;
+        for (final o in history.suppliers) {
+          if (o.isDefault) usual = o.code;
+        }
+        codes.add(usual);
+      }
+      if (supplier.value != null || codes.length != 1 || codes.first == null) return;
+      final option = _byCode(suppliers, codes.first!);
+      if (option != null) supplier.value = option;
+    } on ApiException {
+      // Not important: the supplier can still be chosen by hand.
     }
   }
 
@@ -249,10 +500,7 @@ class PurchaseOrderFormController extends GetxController {
     }
   }
 
-  /// Adds the good rows of [preview] as product lines (a product already in
-  /// the list gets the file's quantity and price). Returns how many rows
-  /// were added and how many had to be skipped because the app does not have
-  /// that product loaded.
+  /// Adds the good rows of [preview] as product lines (a product already in the list gets the file's quantity and price).
   ({int added, int skipped}) applyImport(PoImportPreview preview) {
     final byCode = <String, StockItemData>{
       for (final p in catalog.allItems)
@@ -362,10 +610,9 @@ class PurchaseOrderFormController extends GetxController {
         await _service.update(po.id, body);
       }
       Get.back();
-      Get.snackbar(
+      AppSnackbar.success(
         'menu_purchase_orders'.tr,
         (submit ? (needsApprover ? 'po_submitted_message' : 'po_approved_message') : 'po_saved_message').tr,
-        snackPosition: SnackPosition.BOTTOM,
       );
     } on ApiException catch (e) {
       errorMessage.value = e.message;
@@ -376,6 +623,12 @@ class PurchaseOrderFormController extends GetxController {
 
   @override
   void onClose() {
+    scrollController.dispose();
+    _capacityTimer?.cancel();
+    _suggestTimer?.cancel();
+    for (final w in _lineWatchers) {
+      w.cancel();
+    }
     noteController.dispose();
     for (final l in lines) {
       l.dispose();

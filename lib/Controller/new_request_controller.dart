@@ -3,14 +3,7 @@ import 'package:get/get.dart';
 import 'package:stock_management/Controller/request_controller.dart';
 import 'package:stock_management/Model/request_models.dart';
 
-/// Static demo form — no API yet. Save drops a mock Pending "Purchase
-/// Order" request into [RequestController]'s list (same pattern as Add
-/// Product), then pops back to the Requests list. Stock Transfer and
-/// Adjustment used to live here as extra chip-selectable types but have
-/// since moved out to their own dedicated screens (see TransferScreen/
-/// AdjustScreen), the same way Stock In/Out did before them — Purchase
-/// Order is the one generic request type left without a dedicated screen
-/// of its own.
+/// Static demo form — no API yet.
 class NewRequestController extends GetxController {
   final productController = TextEditingController();
   final skuController = TextEditingController();

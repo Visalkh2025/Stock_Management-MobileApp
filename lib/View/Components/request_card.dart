@@ -3,10 +3,7 @@ import 'package:get/get.dart';
 import 'package:stock_management/Config/theme/app_theme.dart';
 import 'package:stock_management/Model/request_models.dart';
 
-/// One request row on the Requests screen — avatar initials, requester +
-/// type/ID, status badge, description, and a "submitted" caption. Same
-/// card shell (white, border, soft shadow) as [StockItemCard] so both
-/// list screens read as one system.
+/// One request row on the Requests screen.
 class RequestCard extends StatelessWidget {
   const RequestCard({super.key, required this.data, this.onTap});
 
@@ -65,7 +62,7 @@ class RequestCard extends StatelessWidget {
                     alignment: Alignment.center,
                     child: Text(
                       data.initials,
-                      style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: AppColors.brand700),
+                      style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: AppColors.brand700),
                     ),
                   ),
                   const SizedBox(width: 10),
@@ -76,13 +73,13 @@ class RequestCard extends StatelessWidget {
                       children: [
                         Text(
                           data.requesterName,
-                          style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700, color: AppColors.ink),
+                          style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700, color: AppColors.ink),
                           overflow: TextOverflow.ellipsis,
                         ),
                         const SizedBox(height: 1),
                         Text(
                           '${data.typeLabel} • ${data.requestId}',
-                          style: const TextStyle(fontSize: 10.5, fontWeight: FontWeight.w500, color: AppColors.muted),
+                          style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.w500, color: AppColors.muted),
                           overflow: TextOverflow.ellipsis,
                         ),
                       ],
@@ -102,7 +99,7 @@ class RequestCard extends StatelessWidget {
               const SizedBox(height: 8),
               Text(
                 data.detail,
-                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: AppColors.muted),
+                style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: AppColors.muted),
               ),
               const SizedBox(height: 4),
               Row(
@@ -110,14 +107,14 @@ class RequestCard extends StatelessWidget {
                   Expanded(
                     child: Text(
                       data.submittedAgo,
-                      style: const TextStyle(fontSize: 10.5, fontWeight: FontWeight.w600, color: AppColors.textTertiary),
+                      style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.w600, color: AppColors.textTertiary),
                     ),
                   ),
                   // The server says it is this person's turn to approve.
                   if (data.canAct && data.status == RequestStatus.pending)
                     Text(
                       'request_needs_your_action'.tr,
-                      style: const TextStyle(fontSize: 10.5, fontWeight: FontWeight.w800, color: AppColors.brand700),
+                      style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.w800, color: AppColors.brand700),
                     ),
                 ],
               ),

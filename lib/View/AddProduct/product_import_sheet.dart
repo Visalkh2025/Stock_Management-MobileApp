@@ -27,7 +27,7 @@ class ProductImportSheet extends StatelessWidget {
               padding: const EdgeInsets.fromLTRB(20, 18, 20, 4),
               child: Text(
                 'import_review_title'.tr,
-                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.ink),
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.ink),
               ),
             ),
             Padding(
@@ -54,10 +54,10 @@ class ProductImportSheet extends StatelessWidget {
                         child: Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Icon(Icons.error_rounded, size: 18, color: AppColors.danger),
+                            Icon(Icons.error_rounded, size: 18, color: AppColors.danger),
                             const SizedBox(width: 10),
                             Expanded(
-                              child: Text(errors[index], style: const TextStyle(fontSize: 12.5, color: AppColors.danger, height: 1.4)),
+                              child: Text(errors[index], style: TextStyle(fontSize: 12.5, color: AppColors.danger, height: 1.4)),
                             ),
                           ],
                         ),
@@ -114,7 +114,7 @@ class _RowTile extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Icon(Icons.check_circle_rounded, size: 18, color: AppColors.success),
+          Icon(Icons.check_circle_rounded, size: 18, color: AppColors.success),
           const SizedBox(width: 10),
           Expanded(
             child: Column(
@@ -125,7 +125,7 @@ class _RowTile extends StatelessWidget {
                     Flexible(
                       child: Text(
                         _text('name'),
-                        style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.ink),
+                        style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.ink),
                       ),
                     ),
                     const SizedBox(width: 6),
@@ -134,14 +134,14 @@ class _RowTile extends StatelessWidget {
                       decoration: BoxDecoration(color: AppColors.brand100, borderRadius: BorderRadius.circular(6)),
                       child: Text(
                         _text('code'),
-                        style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: AppColors.brand700),
+                        style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: AppColors.brand700),
                       ),
                     ),
                   ],
                 ),
                 const SizedBox(height: 2),
-                Text(details, style: const TextStyle(fontSize: 12, color: AppColors.muted)),
-                Text(stock, style: const TextStyle(fontSize: 12, color: AppColors.muted)),
+                Text(details, style: TextStyle(fontSize: 12, color: AppColors.muted)),
+                Text(stock, style: TextStyle(fontSize: 12, color: AppColors.muted)),
               ],
             ),
           ),

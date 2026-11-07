@@ -27,7 +27,7 @@ class ApprovalChainCard extends StatelessWidget {
         children: [
           Text(
             helpText,
-            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: AppColors.muted, height: 1.4),
+            style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: AppColors.muted, height: 1.4),
           ),
           const SizedBox(height: 14),
           Obx(
@@ -50,11 +50,11 @@ class ApprovalChainCard extends StatelessWidget {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(Icons.add_rounded, size: 16, color: AppColors.brand700),
+                  Icon(Icons.add_rounded, size: 16, color: AppColors.brand700),
                   const SizedBox(width: 6),
                   Text(
                     'action_add_approver'.tr,
-                    style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700, color: AppColors.brand700),
+                    style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700, color: AppColors.brand700),
                   ),
                 ],
               ),
@@ -83,14 +83,14 @@ class ApprovalChainCard extends StatelessWidget {
               Expanded(
                 child: Text(
                   'label_step'.trParams({'n': '${index + 1}'}),
-                  style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700, color: AppColors.ink),
+                  style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700, color: AppColors.ink),
                 ),
               ),
               if (chain.drafts.length > 1)
                 InkWell(
                   onTap: () => chain.removeRow(index),
                   borderRadius: BorderRadius.circular(8),
-                  child: const Padding(
+                  child: Padding(
                     padding: EdgeInsets.all(4),
                     child: Icon(Icons.close_rounded, size: 16, color: AppColors.danger),
                   ),
@@ -107,7 +107,7 @@ class ApprovalChainCard extends StatelessWidget {
               required: true,
               allowClear: false,
               fillColor: AppColors.cardBg,
-              prefixIcon: const Icon(Icons.person_outline_rounded, size: 20, color: AppColors.textTertiary),
+              prefixIcon: Icon(Icons.person_outline_rounded, size: 20, color: AppColors.textTertiary),
               onChanged: (v) => draft.reviewer.value = v,
             ),
           ),
@@ -120,7 +120,7 @@ class ApprovalChainCard extends StatelessWidget {
               required: true,
               allowClear: false,
               fillColor: AppColors.cardBg,
-              prefixIcon: const Icon(Icons.verified_user_outlined, size: 20, color: AppColors.textTertiary),
+              prefixIcon: Icon(Icons.verified_user_outlined, size: 20, color: AppColors.textTertiary),
               onChanged: (v) => chain.setRole(draft, v),
             ),
           ),

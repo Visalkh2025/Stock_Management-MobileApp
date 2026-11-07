@@ -2,11 +2,9 @@ import 'package:get/get.dart';
 import 'package:stock_management/Model/master_data_models.dart';
 import 'package:stock_management/Services/api_exception.dart';
 import 'package:stock_management/Services/master_data_crud.dart';
+import 'package:stock_management/View/Components/app_snackbar.dart';
 
-/// Backs one Manage > `<thing>` list (Categories, Brands, Suppliers,
-/// Warehouses): loads from the API, filters by the search box, and
-/// "deletes" (= deactivates) a row. Add/Edit happens on the matching
-/// [MasterFormController] screen, which calls [load] again when it saves.
+/// Backs one Manage > `<thing>` list (Categories, Brands, Suppliers, Warehouses): loads from the API, filters by the search box, and "deletes" (= deactivates) a row.
 abstract class MasterListController<T extends MasterRecord> extends GetxController {
   /// The API endpoint this list reads and writes.
   MasterDataCrud<T> get crud;
@@ -59,7 +57,7 @@ abstract class MasterListController<T extends MasterRecord> extends GetxControll
       await crud.deactivate(item.id);
       await load();
     } on ApiException catch (e) {
-      Get.snackbar('error_title'.tr, e.message, snackPosition: SnackPosition.BOTTOM);
+      AppSnackbar.error('error_title'.tr, e.message);
     }
   }
 }

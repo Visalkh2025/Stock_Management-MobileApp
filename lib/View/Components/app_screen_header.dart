@@ -2,17 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:stock_management/Config/theme/app_theme.dart';
 
-/// Shared header shell for the list-style main screens (Stock, Requests, More).
-///
-/// Same brand language as the Home hero header, one step brighter: Home is the
-/// deep `brand900 → brand800` near-black hero; these siblings use a vivid
-/// `brand800 → brand600` purple so the screens read as one set with a clear
-/// hierarchy. It owns only the chrome — the gradient, decorative light orbs,
-/// rounded bottom, a purple glow shadow, light status-bar icons, and the top
-/// padding that lets it bleed behind the status bar / notch.
-///
-/// Each screen supplies its own [children] (title, chips, profile card, …),
-/// which are expected to be styled for a dark background (white text, etc.).
 class AppScreenHeader extends StatelessWidget {
   const AppScreenHeader({super.key, required this.children});
 
@@ -42,7 +31,7 @@ class AppScreenHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final topInset = MediaQuery.paddingOf(context).top;
+    final topInset = _topInset(context);
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
       // Dark header → light status-bar icons.
@@ -100,6 +89,18 @@ class AppScreenHeader extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  /// Height of the status bar / notch / Dynamic Island to clear.
+  ///
+  /// `padding.top` drops to 0 when an ancestor (a SafeArea, an AppBar) has
+  /// already consumed it, which pushed the title up under the status bar on
+  /// some screens. `viewPadding.top` is the real, unconsumed inset, so the
+  /// larger of the two is used, with a floor for devices that report none.
+  static double _topInset(BuildContext context) {
+    final media = MediaQuery.of(context);
+    final inset = media.padding.top > media.viewPadding.top ? media.padding.top : media.viewPadding.top;
+    return inset < 24 ? 24 : inset;
   }
 
   Widget _orb(double size, Color color) {

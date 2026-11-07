@@ -5,6 +5,7 @@ import 'package:stock_management/Controller/request_controller.dart';
 import 'package:stock_management/Model/request_models.dart';
 import 'package:stock_management/View/Components/app_main_scaffold.dart';
 import 'package:stock_management/View/Components/app_screen_header.dart';
+import 'package:stock_management/View/Components/date_filter_bar.dart';
 import 'package:stock_management/View/Components/request_card.dart';
 
 class RequestsScreen extends GetView<RequestController> {
@@ -43,10 +44,7 @@ class RequestsScreen extends GetView<RequestController> {
                   return RefreshIndicator(
                     onRefresh: controller.load,
                     child: ListView.separated(
-                      // Bottom padding clears the translucent nav bar (its
-                      // height + its own bottom margin, plus a little
-                      // breathing room) so the last card rests above it
-                      // instead of underneath it.
+                      // Bottom padding clears the translucent nav bar (its height + its own bottom margin, plus a little breathing room) so the last card rests above it instead of underneath it.
                       physics: const AlwaysScrollableScrollPhysics(),
                       padding: EdgeInsets.fromLTRB(20, 14, 20, MediaQuery.paddingOf(context).bottom * 0.5 + 76),
                       itemCount: items.length,
@@ -73,9 +71,9 @@ class RequestsScreen extends GetView<RequestController> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.cloud_off_rounded, size: 40, color: AppColors.muted),
+            Icon(Icons.cloud_off_rounded, size: 40, color: AppColors.muted),
             const SizedBox(height: 12),
-            Text(message, textAlign: TextAlign.center, style: const TextStyle(color: AppColors.muted)),
+            Text(message, textAlign: TextAlign.center, style: TextStyle(color: AppColors.muted)),
             const SizedBox(height: 12),
             TextButton(onPressed: controller.load, child: Text('action_retry'.tr)),
           ],
@@ -100,6 +98,8 @@ class RequestsScreen extends GetView<RequestController> {
         ),
         const SizedBox(height: 16),
         _statusChips,
+        const SizedBox(height: 8),
+        Obx(() => DateFilterBar(value: controller.dateFilter.value, onChanged: controller.setDateFilter)),
       ],
     );
   }
@@ -147,10 +147,7 @@ class RequestsScreen extends GetView<RequestController> {
     );
   }
 
-  // Count shows as a small circular badge in the pill's top-right corner
-  // instead of inline text, so the label stays clean at a glance. Same
-  // pattern as Stock's _filterChips: each status keeps its own
-  // warning/success/danger tint instead of sharing All's neutral look.
+  // Count shows as a small circular badge in the pill's top-right corner instead of inline text, so the label stays clean at a glance.
   Widget _chip(String label, int count, RequestStatus? status) {
     final isActive = controller.activeFilter.value == status;
     Color bg;
@@ -233,12 +230,12 @@ class RequestsScreen extends GetView<RequestController> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.assignment_outlined, size: 40, color: AppColors.textTertiary),
+            Icon(Icons.assignment_outlined, size: 40, color: AppColors.textTertiary),
             const SizedBox(height: 12),
             Text(
               'requests_empty_state'.tr,
               textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.muted),
+              style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.muted),
             ),
           ],
         ),

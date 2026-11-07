@@ -5,12 +5,7 @@ import 'package:stock_management/Controller/category_controller.dart';
 import 'package:stock_management/Controller/supplier_controller.dart';
 import 'package:stock_management/Controller/warehouse_controller.dart';
 
-/// Hub screen behind More > Manage (renamed from "Master Data") and Home's
-/// "Manage" quick action — a menu of the four master-data lists (Category /
-/// Supplier / Warehouse), each with its own list + Add/Edit form screen.
-/// Holds no state of its own beyond reading the other controllers'
-/// counts, via the same guarded-singleton pattern used throughout the app
-/// (StockController, RequestController, ProfileController).
+/// Hub screen behind More > Manage (renamed from "Master Data") and Home's "Manage" quick action.
 class ManageController extends GetxController {
   CategoryController get _category {
     if (!Get.isRegistered<CategoryController>()) {

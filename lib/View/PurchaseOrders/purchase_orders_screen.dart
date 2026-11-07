@@ -5,6 +5,7 @@ import 'package:stock_management/Config/theme/app_theme.dart';
 import 'package:stock_management/Controller/purchase_orders_controller.dart';
 import 'package:stock_management/Model/purchase_order_models.dart';
 import 'package:stock_management/View/Components/app_screen_header.dart';
+import 'package:stock_management/View/Components/date_filter_bar.dart';
 import 'package:stock_management/View/PurchaseOrders/po_parts.dart';
 
 /// More > Purchase Orders — every purchase order with a status filter.
@@ -20,8 +21,16 @@ class PurchaseOrdersScreen extends GetView<PurchaseOrdersController> {
           PoHeader(
             title: 'menu_purchase_orders'.tr,
             trailing: can(Perm.poCreate) ? _addButton : null,
-            below: _statusChips,
+            below: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _statusChips,
+                const SizedBox(height: 8),
+                Obx(() => DateFilterBar(value: controller.dateFilter.value, onChanged: controller.setDateFilter)),
+              ],
+            ),
           ),
+          _reorderBanner,
           Expanded(
             child: SafeArea(
               top: false,
@@ -53,6 +62,55 @@ class PurchaseOrdersScreen extends GetView<PurchaseOrdersController> {
         ],
       ),
     );
+  }
+
+  /// "N products need reordering" — opens the reorder list.
+  Widget get _reorderBanner {
+    return Obx(() {
+      if (!controller.hasReorder) return const SizedBox.shrink();
+      final anyOut = controller.reorderOut.value > 0;
+      final color = anyOut ? AppColors.danger : AppColors.warning;
+      return Padding(
+        padding: const EdgeInsets.fromLTRB(20, 14, 20, 0),
+        child: Material(
+          color: anyOut ? AppColors.dangerBg : AppColors.warningBg,
+          borderRadius: BorderRadius.circular(16),
+          child: InkWell(
+            onTap: controller.openReorder,
+            borderRadius: BorderRadius.circular(16),
+            child: Padding(
+              padding: const EdgeInsets.all(14),
+              child: Row(
+                children: [
+                  Icon(Icons.warning_amber_rounded, color: color),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'po_reorder_banner_title'.tr,
+                          style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w800, color: color),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          'po_reorder_banner_sub'.trParams({
+                            'out': '${controller.reorderOut.value}',
+                            'low': '${controller.reorderLow.value}',
+                          }),
+                          style: TextStyle(fontSize: 12, color: color),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Icon(Icons.chevron_right_rounded, color: color),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
+    });
   }
 
   Widget get _addButton {
@@ -167,7 +225,7 @@ class PurchaseOrdersScreen extends GetView<PurchaseOrdersController> {
             Text(
               text,
               textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.muted),
+              style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.muted),
             ),
           ],
         ),
@@ -204,7 +262,7 @@ class _OrderCard extends StatelessWidget {
                   Expanded(
                     child: Text(
                       order.poNumber,
-                      style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: AppColors.ink),
+                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: AppColors.ink),
                     ),
                   ),
                   PoStatusBadge(order.status),
@@ -215,18 +273,18 @@ class _OrderCard extends StatelessWidget {
                 order.supplierName,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.ink),
+                style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.ink),
               ),
               const SizedBox(height: 2),
               Text(
                 '${'po_items_count'.trParams({'count': '${order.itemCount}'})} • ${order.warehouseName}',
-                style: const TextStyle(fontSize: 12, color: AppColors.muted),
+                style: TextStyle(fontSize: 12, color: AppColors.muted),
               ),
               if (order.pendingCatalogCount > 0) ...[
                 const SizedBox(height: 4),
                 Text(
                   'po_list_pending'.trParams({'count': '${order.pendingCatalogCount}'}),
-                  style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700, color: AppColors.warning),
+                  style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700, color: AppColors.warning),
                 ),
               ],
               const SizedBox(height: 10),
@@ -234,10 +292,10 @@ class _OrderCard extends StatelessWidget {
                 children: [
                   Text(
                     formatMoney(order.totalAmount),
-                    style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: AppColors.brand700),
+                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: AppColors.brand700),
                   ),
                   const Spacer(),
-                  Text(formatDate(order.createdAt), style: const TextStyle(fontSize: 11.5, color: AppColors.textTertiary)),
+                  Text(formatDate(order.createdAt), style: TextStyle(fontSize: 11.5, color: AppColors.textTertiary)),
                 ],
               ),
             ],

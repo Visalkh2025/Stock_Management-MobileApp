@@ -1,32 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:stock_management/Config/theme/app_theme.dart';
 import 'package:flutter/rendering.dart' show ScrollDirection;
 import 'package:get/get.dart';
 import 'package:stock_management/Config/routes/app_routes.dart';
+import 'package:stock_management/Controller/nav_badge_controller.dart';
 import 'package:stock_management/View/Components/app_bottom_nav_bar.dart';
 
-/// Which of the 4 bottom-nav destinations a main screen represents. Using
-/// an enum instead of a raw index keeps [AppMainScaffold] call sites
-/// self-documenting and stops a typo'd index from silently highlighting —
-/// or routing to — the wrong tab.
+/// Which of the 4 bottom-nav destinations a main screen represents.
 enum AppNavTab { home, stock, requests, more }
 
-/// The Scaffold shell shared by every main (post-login) screen — Home,
-/// Stock, Requests, More.
-///
-/// Before this widget, every one of those 4 screens copy-pasted the same
-/// page background, the same 4-item [AppBottomNavBar] list, the same
-/// docked [AppBottomNavCenterButton] + `centerDocked` location — and each
-/// screen's controller carried its own near-identical `changeNavIndex`
-/// method for switching tabs. A screen now only supplies which [tab] it
-/// is and its [body]; everything about "being one of the 4 main screens"
-/// lives here once instead of 4 times.
+/// The Scaffold shell shared by every main (post-login) screen — Home, Stock, Requests, More.
 class AppMainScaffold extends StatefulWidget {
   const AppMainScaffold({
     super.key,
     required this.tab,
     required this.body,
-    this.backgroundColor = const Color(0xFFF6F5F9),
-    this.requestsBadgeCount = 7,
+    this.backgroundColor,
   });
 
   /// Which tab this screen is — decides which nav item is highlighted and
@@ -34,12 +23,7 @@ class AppMainScaffold extends StatefulWidget {
   final AppNavTab tab;
 
   final Widget body;
-  final Color backgroundColor;
-
-  /// Pending-requests count shown on the Requests tab's badge. Still a
-  /// mock number (matches what every screen hardcoded before) — pass a
-  /// real count in once Requests has one to share.
-  final int requestsBadgeCount;
+  final Color? backgroundColor;
 
   @override
   State<AppMainScaffold> createState() => _AppMainScaffoldState();
@@ -48,12 +32,23 @@ class AppMainScaffold extends StatefulWidget {
 class _AppMainScaffoldState extends State<AppMainScaffold> {
   static const List<String> _tabRoutes = [Routes.home, Routes.stock, Routes.requests, Routes.more];
 
-  // Nav bar + center button hide while scrolling further into the content
-  // and reappear once the user scrolls back toward the top — same
-  // convention as most feeds/lists. UserScrollNotification.direction:
-  // `reverse` = content moving up (scrolling down into the list), `forward`
-  // = content moving down (scrolling back up) — see the check below.
+  // Nav bar + center button hide while scrolling further into the content and reappear once the user scrolls back toward the top — same convention as most feeds/lists.
   bool _navVisible = true;
+
+  late final NavBadgeController _badges;
+
+  @override
+  void initState() {
+    super.initState();
+    _badges = Get.isRegistered<NavBadgeController>()
+        ? Get.find<NavBadgeController>()
+        : Get.put<NavBadgeController>(NavBadgeController(), permanent: true);
+    // The tab being shown clears its own badge; new items later show it again.
+    _badges.setActiveTab(widget.tab).then((_) {
+      if (widget.tab == AppNavTab.requests) _badges.markRequestsSeen();
+      if (widget.tab == AppNavTab.stock) _badges.markStockSeen();
+    });
+  }
 
   void _onTabTap(int index) {
     if (index == widget.tab.index) return;
@@ -81,7 +76,7 @@ class _AppMainScaffoldState extends State<AppMainScaffold> {
       // Body content scrolls underneath the translucent nav bar instead of
       // stopping above it, so there's actually something visible through it.
       extendBody: true,
-      backgroundColor: widget.backgroundColor,
+      backgroundColor: widget.backgroundColor ?? (AppColors.isDark ? AppColors.pageBg : const Color(0xFFF6F5F9)),
       body: NotificationListener<UserScrollNotification>(
         onNotification: _handleScrollNotification,
         child: widget.body,
@@ -95,15 +90,17 @@ class _AppMainScaffoldState extends State<AppMainScaffold> {
           child: AnimatedOpacity(
             duration: const Duration(milliseconds: 220),
             opacity: _navVisible ? 1 : 0,
-            child: AppBottomNavBar(
-              currentIndex: widget.tab.index,
-              onTap: _onTabTap,
-              items: [
-                AppBottomNavItem(icon: Icons.home_outlined, label: 'nav_home'.tr),
-                AppBottomNavItem(icon: Icons.inventory_2_outlined, label: 'nav_stock'.tr),
-                AppBottomNavItem(icon: Icons.assignment_outlined, label: 'nav_requests'.tr, badgeCount: widget.requestsBadgeCount),
-                AppBottomNavItem(icon: Icons.more_horiz_rounded, label: 'nav_more'.tr),
-              ],
+            child: Obx(
+              () => AppBottomNavBar(
+                currentIndex: widget.tab.index,
+                onTap: _onTabTap,
+                items: [
+                  AppBottomNavItem(icon: Icons.home_outlined, label: 'nav_home'.tr),
+                  AppBottomNavItem(icon: Icons.inventory_2_outlined, label: 'nav_stock'.tr, badgeCount: _badges.stockBadge.value),
+                  AppBottomNavItem(icon: Icons.assignment_outlined, label: 'nav_requests'.tr, badgeCount: _badges.requestsBadge.value),
+                  AppBottomNavItem(icon: Icons.more_horiz_rounded, label: 'nav_more'.tr),
+                ],
+              ),
             ),
           ),
         ),

@@ -5,10 +5,7 @@ import 'package:stock_management/Controller/manage_controller.dart';
 import 'package:stock_management/View/Components/app_screen_header.dart';
 import 'package:stock_management/View/Components/more_menu_row.dart';
 
-/// Behind More > Manage and Home's "Manage" quick action — the hub for the
-/// app's master data: Category, Supplier, Warehouse. Each row opens its own
-/// list + Add/Edit form screen (see CategoriesScreen/SuppliersScreen/
-/// WarehousesScreen); nothing here has state beyond the row counts.
+/// Behind More > Manage and Home's "Manage" quick action.
 class ManageScreen extends GetView<ManageController> {
   const ManageScreen({super.key});
 
@@ -106,7 +103,7 @@ class ManageScreen extends GetView<ManageController> {
           for (var i = 0; i < rows.length; i++) ...[
             rows[i],
             if (i != rows.length - 1)
-              const Divider(height: 1, thickness: 1, color: AppColors.border, indent: 14, endIndent: 14),
+              Divider(height: 1, thickness: 1, color: AppColors.border, indent: 14, endIndent: 14),
           ],
         ],
       ),
@@ -119,7 +116,7 @@ class ManageScreen extends GetView<ManageController> {
       height: 20,
       decoration: BoxDecoration(color: AppColors.pageBg, borderRadius: BorderRadius.circular(7)),
       alignment: Alignment.center,
-      child: Text('$count', style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: AppColors.muted)),
+      child: Text('$count', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: AppColors.muted)),
     );
   }
 }

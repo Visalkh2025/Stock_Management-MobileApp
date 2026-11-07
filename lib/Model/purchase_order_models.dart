@@ -8,7 +8,8 @@ enum PoStatus {
   approved('APPROVED', 'po_status_approved'),
   rejected('REJECTED', 'po_status_rejected'),
   partiallyReceived('PARTIALLY_RECEIVED', 'po_status_partial'),
-  received('RECEIVED', 'po_status_received');
+  received('RECEIVED', 'po_status_received'),
+  closed('CLOSED', 'po_status_closed');
 
   const PoStatus(this.apiValue, this.labelKey);
 
@@ -21,6 +22,7 @@ enum PoStatus {
   Color get color {
     switch (this) {
       case PoStatus.draft:
+      case PoStatus.closed:
         return AppColors.muted;
       case PoStatus.submitted:
       case PoStatus.partiallyReceived:
@@ -36,6 +38,7 @@ enum PoStatus {
   Color get background {
     switch (this) {
       case PoStatus.draft:
+      case PoStatus.closed:
         return AppColors.pageBg;
       case PoStatus.submitted:
       case PoStatus.partiallyReceived:
@@ -136,6 +139,8 @@ class PurchaseOrderItemData {
     this.catalogAdded = false,
     this.newCategoryCode,
     this.newCategoryName,
+    this.newBrandCode,
+    this.newBrandName,
     this.newUnit,
     this.newSku,
     this.variantCode,
@@ -159,6 +164,8 @@ class PurchaseOrderItemData {
   final bool catalogAdded;
   final String? newCategoryCode;
   final String? newCategoryName;
+  final String? newBrandCode;
+  final String? newBrandName;
   final String? newUnit;
   final String? newSku;
   final String? variantCode;
@@ -182,6 +189,8 @@ class PurchaseOrderItemData {
         catalogAdded: json['catalogAdded'] == true,
         newCategoryCode: _str(np?['categoryCode']),
         newCategoryName: _str(np?['categoryName']),
+        newBrandCode: _str(np?['brandCode']),
+        newBrandName: _str(np?['brandName']),
         newUnit: _str(np?['unit']),
         newSku: _str(np?['sku']),
         productName: (json['productName'] ?? '').toString(),
@@ -202,6 +211,8 @@ class GoodsReceiptData {
     required this.id,
     required this.receiptNumber,
     required this.lines,
+    this.issues = const [],
+    this.rating,
     this.receivedByName,
     this.note,
     this.createdAt,
@@ -213,14 +224,22 @@ class GoodsReceiptData {
   final String? note;
   final DateTime? createdAt;
 
+  /// How the delivery went, 1-5 (null = not rated).
+  final int? rating;
+
   /// "Product name" -> quantity that arrived in this delivery.
   final List<({String name, double quantity})> lines;
+
+  /// What was short in this delivery: name, reason (NOT_ARRIVED / DAMAGED /
+  /// WRONG_ITEM) and quantity.
+  final List<({String name, String reason, double quantity})> issues;
 
   factory GoodsReceiptData.fromJson(Map<String, dynamic> json) => GoodsReceiptData(
         id: (json['id'] ?? '').toString(),
         receiptNumber: (json['receiptNumber'] ?? '').toString(),
         receivedByName: _str((json['receivedBy'] as Map?)?['name']),
         note: _str(json['note']),
+        rating: json['rating'] == null ? null : _num(json['rating']).round(),
         createdAt: _date(json['createdAt']),
         lines: (json['items'] as List? ?? const []).map((e) {
           final m = Map<String, dynamic>.from(e as Map);
@@ -228,6 +247,76 @@ class GoodsReceiptData {
           final name = (m['productName'] ?? '').toString();
           return (name: variant == null ? name : '$name • $variant', quantity: _num(m['quantity']));
         }).toList(),
+        issues: (json['issues'] as List? ?? const []).map((e) {
+          final m = Map<String, dynamic>.from(e as Map);
+          final variant = _str(m['variantName']);
+          final name = (m['productName'] ?? '').toString();
+          return (
+            name: variant == null ? name : '$name • $variant',
+            reason: (m['reason'] ?? '').toString(),
+            quantity: _num(m['quantity']),
+          );
+        }).toList(),
+      );
+}
+
+/// How full a warehouse gets if a purchase order goes through
+/// (`capacityInfo` on an order, and `GET /purchase-orders/warehouse-check`).
+class WarehouseCapacity {
+  const WarehouseCapacity({
+    required this.used,
+    required this.incoming,
+    required this.orderQuantity,
+    required this.projected,
+    required this.level,
+    this.capacity,
+    this.freeAfter,
+    this.percentAfter,
+  });
+
+  /// Null = the warehouse has no limit.
+  final double? capacity;
+  final double used;
+  final double incoming;
+  final double orderQuantity;
+  final double projected;
+  final double? freeAfter;
+  final double? percentAfter;
+
+  /// 'unlimited' | 'ok' | 'nearly_full' | 'over'
+  final String level;
+
+  bool get hasLimit => capacity != null;
+  bool get isOver => level == 'over';
+  bool get isNearlyFull => level == 'nearly_full';
+
+  static double? _orNull(dynamic v) => v == null ? null : _num(v);
+
+  factory WarehouseCapacity.fromJson(Map<String, dynamic> json) => WarehouseCapacity(
+        capacity: _orNull(json['capacity']),
+        used: _num(json['used']),
+        incoming: _num(json['incoming']),
+        orderQuantity: _num(json['orderQuantity']),
+        projected: _num(json['projected']),
+        freeAfter: _orNull(json['freeAfter']),
+        percentAfter: _orNull(json['percentAfter']),
+        level: (json['level'] ?? 'unlimited').toString(),
+      );
+}
+
+/// What was really bought from one supplier for one product
+/// (`GET /purchase-orders/supplier-products/:code`).
+class SupplierPurchase {
+  const SupplierPurchase({required this.productId, required this.orders, required this.lastPrice});
+
+  final String productId;
+  final int orders;
+  final double lastPrice;
+
+  factory SupplierPurchase.fromJson(Map<String, dynamic> json) => SupplierPurchase(
+        productId: (json['productId'] ?? '').toString(),
+        orders: _num(json['orders']).round(),
+        lastPrice: _num(json['lastPrice']),
       );
 }
 
@@ -252,7 +341,11 @@ class PurchaseOrderDetail {
     this.createdAt,
     this.decidedAt,
     this.pendingCatalogCount = 0,
+    this.capacity,
   });
+
+  /// How full the warehouse gets with this order (null once it is received).
+  final WarehouseCapacity? capacity;
 
   /// Who the order was sent to for approval (null = approved automatically).
   final String? approverId;
@@ -302,6 +395,9 @@ class PurchaseOrderDetail {
       createdAt: _date(json['createdAt']),
       decidedAt: _date(json['decidedAt']),
       pendingCatalogCount: _num(json['pendingCatalogCount']).round(),
+      capacity: json['capacityInfo'] is Map
+          ? WarehouseCapacity.fromJson(Map<String, dynamic>.from(json['capacityInfo'] as Map))
+          : null,
       items: (json['items'] as List? ?? const [])
           .map((e) => PurchaseOrderItemData.fromJson(Map<String, dynamic>.from(e as Map)))
           .toList(),
@@ -397,4 +493,188 @@ class PoApprover {
         name: (json['name'] ?? '').toString(),
         roles: (json['roles'] as List? ?? const []).map((e) => e.toString()).toList(),
       );
+}
+
+/// A product at or below its minimum stock (`GET /purchase-orders/reorder`).
+class ReorderItem {
+  const ReorderItem({
+    required this.productId,
+    required this.code,
+    required this.name,
+    required this.unit,
+    required this.hasVariants,
+    required this.stock,
+    required this.minimumStock,
+    required this.isOut,
+    required this.onOrder,
+    required this.onOrderPoNumbers,
+    required this.suggestedQuantity,
+    required this.covered,
+    this.image,
+    this.maximumStock,
+  });
+
+  final String productId;
+  final String code;
+  final String name;
+  final String unit;
+  final String? image;
+  final bool hasVariants;
+  final double stock;
+  final double minimumStock;
+  final double? maximumStock;
+
+  /// Stock is 0 (otherwise it is only low).
+  final bool isOut;
+
+  /// Quantity already ordered in open purchase orders and not received yet.
+  final double onOrder;
+  final List<String> onOrderPoNumbers;
+  final int suggestedQuantity;
+
+  /// What is already on order is enough to refill it.
+  final bool covered;
+
+  factory ReorderItem.fromJson(Map<String, dynamic> json) => ReorderItem(
+        productId: (json['productId'] ?? '').toString(),
+        code: (json['code'] ?? '').toString(),
+        name: (json['name'] ?? '').toString(),
+        unit: (json['unit'] ?? 'PCS').toString(),
+        image: _str(json['image']),
+        hasVariants: json['hasVariants'] == true,
+        stock: _num(json['stock']),
+        minimumStock: _num(json['minimumStock']),
+        maximumStock: json['maximumStock'] == null ? null : _num(json['maximumStock']),
+        isOut: json['status'] == 'OUT',
+        onOrder: _num(json['onOrder']),
+        onOrderPoNumbers: (json['onOrderPoNumbers'] as List? ?? const []).map((e) => e.toString()).toList(),
+        suggestedQuantity: _num(json['suggestedQuantity']).round(),
+        covered: json['covered'] == true,
+      );
+}
+
+class ReorderSummary {
+  const ReorderSummary({required this.total, required this.outCount, required this.lowCount, required this.items});
+
+  final int total;
+  final int outCount;
+  final int lowCount;
+  final List<ReorderItem> items;
+
+  factory ReorderSummary.fromJson(Map<String, dynamic> json) => ReorderSummary(
+        total: _num(json['total']).round(),
+        outCount: _num(json['outCount']).round(),
+        lowCount: _num(json['lowCount']).round(),
+        items: (json['items'] as List? ?? const [])
+            .map((e) => ReorderItem.fromJson(Map<String, dynamic>.from(e as Map)))
+            .toList(),
+      );
+}
+
+/// One supplier a product was bought from, with how the purchases went.
+class SupplierOffer {
+  const SupplierOffer({
+    required this.code,
+    required this.name,
+    required this.isDefault,
+    required this.timesOrdered,
+    required this.totalQuantity,
+    required this.lastPrice,
+    required this.lowestPrice,
+    required this.averagePrice,
+    this.damagedQuantity = 0,
+    this.wrongQuantity = 0,
+    this.fillRate,
+    this.averageRating,
+    this.ratingCount = 0,
+    this.lastOrderedAt,
+    this.averageLeadDays,
+  });
+
+  final String code;
+  final String name;
+
+  /// The product's usual supplier (set on the product).
+  final bool isDefault;
+  final int timesOrdered;
+  final double totalQuantity;
+  final double lastPrice;
+  final double lowestPrice;
+  final double averagePrice;
+
+  /// Units that arrived broken / not as ordered.
+  final double damagedQuantity;
+  final double wrongQuantity;
+
+  /// % of the ordered quantity that arrived, over finished orders (null = none finished).
+  final double? fillRate;
+
+  /// Average delivery rating 1-5 (null = never rated).
+  final double? averageRating;
+  final int ratingCount;
+  final DateTime? lastOrderedAt;
+
+  /// Days from approval to the first delivery, averaged (null = never delivered).
+  final double? averageLeadDays;
+
+  bool get hasHistory => timesOrdered > 0;
+
+  /// Broken + wrong units (0 = none reported).
+  double get problemQuantity => damagedQuantity + wrongQuantity;
+
+  /// Dependable: delivers (almost) everything, rated 4+ and no damaged / wrong units.
+  bool get isReliable =>
+      hasHistory &&
+      fillRate != null &&
+      fillRate! >= 95 &&
+      averageRating != null &&
+      averageRating! >= 4 &&
+      problemQuantity == 0;
+
+  factory SupplierOffer.fromJson(Map<String, dynamic> json) => SupplierOffer(
+        code: (json['code'] ?? '').toString(),
+        name: (json['name'] ?? '').toString(),
+        isDefault: json['isDefault'] == true,
+        timesOrdered: _num(json['timesOrdered']).round(),
+        totalQuantity: _num(json['totalQuantity']),
+        lastPrice: _num(json['lastPrice']),
+        lowestPrice: _num(json['lowestPrice']),
+        averagePrice: _num(json['averagePrice']),
+        damagedQuantity: _num(json['damagedQuantity']),
+        wrongQuantity: _num(json['wrongQuantity']),
+        fillRate: json['fillRate'] == null ? null : _num(json['fillRate']),
+        averageRating: json['averageRating'] == null ? null : _num(json['averageRating']),
+        ratingCount: _num(json['ratingCount']).round(),
+        lastOrderedAt: _date(json['lastOrderedAt']),
+        averageLeadDays: json['averageLeadDays'] == null ? null : _num(json['averageLeadDays']),
+      );
+}
+
+class SupplierHistory {
+  const SupplierHistory({required this.suppliers});
+
+  final List<SupplierOffer> suppliers;
+
+  factory SupplierHistory.fromJson(Map<String, dynamic> json) => SupplierHistory(
+        suppliers: (json['suppliers'] as List? ?? const [])
+            .map((e) => SupplierOffer.fromJson(Map<String, dynamic>.from(e as Map)))
+            .toList(),
+      );
+}
+
+/// What the new-order form starts with when it is opened from the reorder
+/// flow (instead of an existing order to edit).
+class PoPrefill {
+  const PoPrefill({required this.lines, this.supplierCode});
+
+  final String? supplierCode;
+  final List<PoPrefillLine> lines;
+}
+
+class PoPrefillLine {
+  const PoPrefillLine({required this.productCode, required this.quantity, this.price});
+
+  final String productCode;
+  final int quantity;
+  final double? price;
 }

@@ -1,11 +1,6 @@
 import 'package:flutter/material.dart';
 
 /// The StockFlow box/cube mark, drawn as pure vector strokes.
-///
-/// Kept as a `CustomPainter` (instead of a bundled PNG/SVG) so it renders
-/// pixel-crisp at any size and on any pixel density with zero asset
-/// management — just drop it wherever the brand mark is needed and tint it
-/// with [color].
 class AppLogoIcon extends StatelessWidget {
   const AppLogoIcon({
     super.key,

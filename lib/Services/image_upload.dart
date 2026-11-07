@@ -5,9 +5,6 @@ import 'package:http_parser/http_parser.dart';
 import 'package:stock_management/Services/api_exception.dart';
 
 /// Builds the multipart part for an image, declaring the REAL content type
-/// (sniffed from the file's first bytes) instead of guessing from the file
-/// name — picked files can come back with no/odd extensions, which the
-/// server would then see as `application/octet-stream`.
 Future<http.MultipartFile> imageMultipart(String field, File image) async {
   final raf = await image.open();
   final List<int> head;

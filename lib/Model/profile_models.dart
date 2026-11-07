@@ -1,10 +1,6 @@
 import 'dart:io';
 
-/// The signed-in user's editable profile. A single [ProfileController]
-/// (see Controller/profile_controller.dart) owns one of these and is
-/// shared app-wide, so an edit made on the Profile screen is immediately
-/// reflected everywhere else it's shown — the More screen's profile row,
-/// the Home header's avatar.
+/// The signed-in user's editable profile.
 class UserProfileData {
   const UserProfileData({
     required this.name,
@@ -21,10 +17,7 @@ class UserProfileData {
   final String? phone;
   final File? avatarImage;
 
-  /// The signed-in user's avatar as a URL from the backend (currently an
-  /// auto-generated ui-avatars.com image — see UsersService.generateAvatar
-  /// server-side). Only used when [avatarImage] (a freshly-picked local
-  /// file, set while editing) isn't set.
+  /// The signed-in user's avatar as a URL from the backend (currently an auto-generated ui-avatars.com image.
   final String? avatarUrl;
 
   /// Up to two initials for the avatar tile, e.g. "Visal Khem" -> "VK".

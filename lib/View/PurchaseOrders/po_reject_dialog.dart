@@ -1,13 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-/// Asks why a purchase order is rejected. Pops the trimmed reason, or null
-/// when cancelled.
-///
-/// The text controller lives in this widget's State so it is disposed only
-/// after the dialog has fully left the screen. Disposing it right after the
-/// dialog future completes (while the close animation still runs) trips
-/// Flutter's `_dependents.isEmpty` assertion.
+/// Asks why a purchase order is rejected.
 class PoRejectDialog extends StatefulWidget {
   const PoRejectDialog({super.key});
 

@@ -7,15 +7,7 @@ import 'package:stock_management/View/Components/app_button.dart';
 import 'package:stock_management/View/Components/app_screen_header.dart';
 import 'package:stock_management/View/Components/app_text_field.dart';
 
-/// The FAB on the Requests screen (and Purchase Orders' "+Add") lands
-/// here. Static demo — no API — Save drops a mock Pending Purchase Order
-/// request into RequestController's list (see [NewRequestController]) and
-/// pops back. Stock Transfer/Adjustment used to be alternate chip-
-/// selectable types on this same form but now have their own dedicated
-/// screens (TransferScreen/AdjustScreen), same as Stock In/Out before
-/// them — Purchase Order is the one generic type left here. Creating a
-/// full product goes to [Routes.addProduct] instead — that flow already
-/// exists and is richer than anything this generic form should duplicate.
+/// The FAB on the Requests screen (and Purchase Orders' "+Add") lands here.
 class NewRequestScreen extends GetView<NewRequestController> {
   const NewRequestScreen({super.key});
 
@@ -86,7 +78,7 @@ class NewRequestScreen extends GetView<NewRequestController> {
   Widget _sectionLabel(String text) {
     return Text(
       text.toUpperCase(),
-      style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700, color: AppColors.textTertiary, letterSpacing: 0.4),
+      style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700, color: AppColors.textTertiary, letterSpacing: 0.4),
     );
   }
 
@@ -98,15 +90,15 @@ class NewRequestScreen extends GetView<NewRequestController> {
         padding: const EdgeInsets.symmetric(vertical: 4),
         child: Row(
           children: [
-            const Icon(Icons.inventory_2_outlined, size: 15, color: AppColors.brand700),
+            Icon(Icons.inventory_2_outlined, size: 15, color: AppColors.brand700),
             const SizedBox(width: 6),
             Expanded(
               child: Text(
                 'product_shortcut_hint'.tr,
-                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.brand700),
+                style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.brand700),
               ),
             ),
-            const Icon(Icons.chevron_right_rounded, size: 16, color: AppColors.brand700),
+            Icon(Icons.chevron_right_rounded, size: 16, color: AppColors.brand700),
           ],
         ),
       ),

@@ -221,10 +221,7 @@ class RequestLookups {
   String warehouse(String? code) => _pick(warehouses, code) ?? '';
 }
 
-/// One request row in the Requests list. Rows from the server carry an
-/// [id], their [approvers] chain and a [canAct] flag; rows created by the
-/// flows that are not wired to the API yet (transfer, adjustment, stock
-/// in/out, purchase order) only exist locally and are never actionable.
+/// One request row in the Requests list.
 class RequestItemData {
   const RequestItemData({
     required this.requesterName,
@@ -233,6 +230,7 @@ class RequestItemData {
     required this.detail,
     required this.submittedAgo,
     required this.status,
+    this.createdAt,
     this.productPayload,
     this.rejectReason,
     this.id,
@@ -247,6 +245,9 @@ class RequestItemData {
   final String detail;
   final String submittedAgo;
   final RequestStatus status;
+
+  /// When the request was made (null for local-only rows).
+  final DateTime? createdAt;
 
   /// Full structured product (with variants, when the product has them) —
   /// lets Request Detail render a real breakdown instead of just the flat
@@ -286,6 +287,7 @@ class RequestItemData {
       detail: detail,
       submittedAgo: submittedAgo,
       status: status ?? this.status,
+      createdAt: createdAt,
       productPayload: productPayload,
       rejectReason: rejectReason ?? this.rejectReason,
       id: id,
@@ -460,6 +462,7 @@ class RequestItemData {
       requestId: '#${json['requestNo'] ?? ''}',
       detail: detail,
       submittedAgo: _ago(DateTime.tryParse((json['createdAt'] ?? '').toString())),
+      createdAt: DateTime.tryParse((json['createdAt'] ?? '').toString())?.toLocal(),
       status: status,
       productPayload: payload,
       rejectReason: rejectReason,

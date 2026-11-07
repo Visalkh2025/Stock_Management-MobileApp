@@ -72,7 +72,7 @@ class WarehouseFormScreen extends GetView<WarehouseFormController> {
   Widget _sectionLabel(String text) {
     return Text(
       text.toUpperCase(),
-      style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700, color: AppColors.textTertiary, letterSpacing: 0.4),
+      style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700, color: AppColors.textTertiary, letterSpacing: 0.4),
     );
   }
 
@@ -96,9 +96,18 @@ class WarehouseFormScreen extends GetView<WarehouseFormController> {
           ),
           const SizedBox(height: 14),
           AppTextField(
-            label: 'field_location'.tr,
+            label: 'field_address'.tr,
             controller: controller.locationController,
             hintText: 'hint_optional'.tr,
+          ),
+          const SizedBox(height: 14),
+          AppTextField(
+            label: 'field_warehouse_capacity'.tr,
+            controller: controller.capacityController,
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            hintText: 'hint_warehouse_capacity'.tr,
+            helperText: 'helper_warehouse_capacity'.tr,
+            validator: controller.capacityValidator,
           ),
         ],
       ),

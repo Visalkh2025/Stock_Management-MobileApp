@@ -1,12 +1,15 @@
 import 'package:get/get.dart';
+import 'package:stock_management/Config/permissions.dart';
 import 'package:stock_management/Controller/stock_form_controller.dart';
 import 'package:stock_management/Controller/stock_line.dart';
 import 'package:stock_management/Model/lookup_models.dart';
+import 'package:stock_management/Services/product_service.dart';
 
 /// Reached from Home's "Transfer" quick action (see HomeController.
 /// openTransfer / Routes.transfer). Moves one or more products from a source
-/// warehouse to a destination warehouse. There is no direct transfer
-/// endpoint, so EVERY transfer — even an admin's — is a STOCK_TRANSFER
+/// warehouse to a destination warehouse. Someone with STOCK_TRANSFER (Super
+/// Admin, Admin, Manager) moves the stock straight away through
+/// `POST /stock-adjustments/transfer`; everyone else sends a STOCK_TRANSFER
 /// request that needs an approval chain. A transfer is net-zero on total
 /// on-hand, so instead of a Current -> After preview each line checks its
 /// quantity against what the source warehouse actually holds.
@@ -21,6 +24,9 @@ class TransferController extends StockFormController {
   bool get warehousePerLine => false;
 
   @override
+  LookupOption? incomingWarehouseOf(StockLine line) => toWarehouse.value;
+
+  @override
   LookupOption? warehouseOf(StockLine line) => warehouse.value;
 
   @override
@@ -30,7 +36,7 @@ class TransferController extends StockFormController {
   String get requestType => 'STOCK_TRANSFER';
 
   @override
-  bool get needsApproval => true;
+  bool get needsApproval => !can(Perm.stockTransfer);
 
   /// Destination options: every warehouse except the source.
   List<LookupOption> get destinationOptions {
@@ -87,5 +93,11 @@ class TransferController extends StockFormController {
       };
 
   @override
-  Future<void> submitDirectLine(StockLine line) async {} // never used: needsApproval is always true
+  Future<void> submitDirectLine(StockLine line) => ProductService().transferStock(
+        productCode: line.product.value!.code!,
+        variantCode: line.variant.value?.code,
+        fromWarehouseCode: warehouse.value!.code,
+        toWarehouseCode: toWarehouse.value!.code,
+        quantity: line.enteredQty.value!,
+      );
 }

@@ -8,12 +8,6 @@ import 'package:stock_management/View/Components/stock_lines_section.dart';
 import 'package:stock_management/View/Components/app_text_field.dart';
 
 /// Reached from Home's header "Stock In"/"Stock Out" buttons — one screen
-/// per direction (see Routes.stockIn/stockOut and StockInBinding/
-/// StockOutBinding), both built from this same widget so the two stay
-/// visually and behaviorally identical apart from [StockMovementDirection]-
-/// driven copy/icon/color. Kept separate from NewRequestScreen because this
-/// flow carries a live Stock impact preview the other request types don't
-/// need — see [StockMovementController].
 class StockMovementScreen extends GetView<StockMovementController> {
   const StockMovementScreen({super.key});
 
@@ -82,7 +76,7 @@ class StockMovementScreen extends GetView<StockMovementController> {
   Widget _sectionLabel(String text) {
     return Text(
       text.toUpperCase(),
-      style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700, color: AppColors.textTertiary, letterSpacing: 0.4),
+      style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700, color: AppColors.textTertiary, letterSpacing: 0.4),
     );
   }
 

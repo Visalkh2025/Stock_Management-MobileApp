@@ -6,6 +6,7 @@ import 'package:stock_management/Controller/team_members_controller.dart';
 import 'package:stock_management/Model/team_member_models.dart';
 import 'package:stock_management/Services/api_exception.dart';
 import 'package:stock_management/Services/team_service.dart';
+import 'package:stock_management/View/Components/app_snackbar.dart';
 
 /// Add/Edit form behind More > Team Members. Get.arguments is the
 /// [TeamMemberData] being edited, or null when adding a new one.
@@ -14,10 +15,7 @@ import 'package:stock_management/Services/team_service.dart';
 /// change (`PUT /users/:id/role`); the backend has no endpoint for editing
 /// name/email/phone, so those fields are read-only while editing.
 class TeamMemberFormController extends GetxController {
-  /// Mirrors the backend's ROLE_ASSIGNMENT_MAP (users.service.ts) so the
-  /// form only offers roles the signed-in user may actually assign. The
-  /// backend is the real gate — this just avoids offering a role that
-  /// would come back 403.
+  /// Mirrors the backend's ROLE_ASSIGNMENT_MAP (users.service.ts) so the form only offers roles the signed-in user may actually assign.
   static const Map<String, List<String>> _assignableRoles = {
     'SUPER_ADMIN': ['ADMIN', 'MANAGER', 'STAFF'],
     'ADMIN': ['MANAGER', 'STAFF'],
@@ -84,7 +82,7 @@ class TeamMemberFormController extends GetxController {
         selectedRoleId.value = (staff ?? visible.firstOrNull)?.id;
       }
     } on ApiException catch (e) {
-      Get.snackbar('team_members_load_failed_title'.tr, e.message, snackPosition: SnackPosition.BOTTOM);
+      AppSnackbar.error('team_members_load_failed_title'.tr, e.message);
     } finally {
       isLoadingRoles.value = false;
     }
@@ -133,7 +131,7 @@ class TeamMemberFormController extends GetxController {
       Get.back();
       _showCreatedDialog(created);
     } on ApiException catch (e) {
-      Get.snackbar('team_member_save_failed_title'.tr, e.message, snackPosition: SnackPosition.BOTTOM);
+      AppSnackbar.error('team_member_save_failed_title'.tr, e.message);
     } finally {
       if (!isClosed) isSaving.value = false;
     }
@@ -146,7 +144,7 @@ class TeamMemberFormController extends GetxController {
       AlertDialog(
         title: Text(
           'team_member_created_title'.tr,
-          style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: AppColors.ink),
+          style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: AppColors.ink),
         ),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         content: SelectableText(
@@ -154,7 +152,7 @@ class TeamMemberFormController extends GetxController {
             'staffId': created.staffId,
             'password': created.temporaryPassword,
           }),
-          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: AppColors.muted),
+          style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: AppColors.muted),
         ),
         actions: [
           TextButton(

@@ -11,6 +11,7 @@ import 'package:stock_management/Services/api_exception.dart';
 import 'package:stock_management/Services/purchase_order_service.dart';
 import 'package:stock_management/View/PurchaseOrders/po_approver_dialog.dart';
 import 'package:stock_management/View/PurchaseOrders/po_reject_dialog.dart';
+import 'package:stock_management/View/Components/app_snackbar.dart';
 
 /// One purchase order and the actions its status allows. `Get.arguments` is
 /// the order's id.
@@ -76,7 +77,7 @@ class PurchaseOrderDetailController extends GetxController {
         allowedExtensions: const ['xlsx'],
       );
       if (saved != null) {
-        Get.snackbar('po_action_export_products'.tr, 'po_export_saved'.tr, snackPosition: SnackPosition.BOTTOM);
+        AppSnackbar.success('po_action_export_products'.tr, 'po_export_saved'.tr);
       }
     } on ApiException catch (e) {
       errorMessage.value = e.message;
@@ -127,6 +128,22 @@ class PurchaseOrderDetailController extends GetxController {
   }
 
   Future<void> approve() => _run(() => _service.approve(orderId));
+
+  /// Receiving is over: what is still missing is not coming.
+  Future<void> closeOrder() async {
+    final ok = await Get.dialog<bool>(
+      AlertDialog(
+        title: Text('po_close_title'.tr),
+        content: Text('po_close_message'.tr),
+        actions: [
+          TextButton(onPressed: () => Get.back(result: false), child: Text('action_cancel'.tr)),
+          TextButton(onPressed: () => Get.back(result: true), child: Text('po_action_close'.tr)),
+        ],
+      ),
+    );
+    if (ok != true) return;
+    await _run(() => _service.close(orderId));
+  }
 
   Future<void> reject() async {
     final reason = await _askReason();

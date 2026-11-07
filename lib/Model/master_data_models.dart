@@ -1,7 +1,4 @@
-/// Simple named master-data records — Category, Brand, Supplier, Warehouse —
-/// managed from More > Manage. Each comes from the NestJS API (`id` and
-/// `code` are server-side; the API addresses a record by `id`, and other
-/// endpoints refer to it by `code`).
+/// Simple named master-data records — Category, Brand, Supplier, Warehouse — managed from More > Manage.
 library;
 
 /// What every master-data record has — lets one list/form controller serve
@@ -64,6 +61,9 @@ class SupplierData implements MasterRecord {
     this.phone,
     this.email,
     this.address,
+    this.platform,
+    this.platformLink,
+    this.country,
   });
 
   @override
@@ -77,6 +77,11 @@ class SupplierData implements MasterRecord {
   final String? email;
   final String? address;
 
+  /// TELEGRAM, WHATSAPP, FACEBOOK ... (see [SupplierFormController.platforms]).
+  final String? platform;
+  final String? platformLink;
+  final String? country;
+
   factory SupplierData.fromJson(Map<String, dynamic> json) => SupplierData(
         id: (json['id'] ?? '').toString(),
         code: (json['code'] ?? '').toString(),
@@ -85,11 +90,29 @@ class SupplierData implements MasterRecord {
         phone: _text(json['phone']),
         email: _text(json['email']),
         address: _text(json['address']),
+        platform: _text(json['platform']),
+        platformLink: _text(json['platformLink']),
+        country: _text(json['country']),
       );
 }
 
 class WarehouseData implements MasterRecord {
-  const WarehouseData({required this.id, required this.code, required this.name, this.location});
+  const WarehouseData({
+    required this.id,
+    required this.code,
+    required this.name,
+    this.location,
+    this.capacity,
+    this.usedQuantity = 0,
+    this.incomingQuantity = 0,
+  });
+
+  /// Most units the warehouse may hold (null = no limit).
+  final double? capacity;
+
+  /// Units in stock now, and units still to arrive on open purchase orders.
+  final double usedQuantity;
+  final double incomingQuantity;
 
   @override
   final String id;
@@ -106,5 +129,14 @@ class WarehouseData implements MasterRecord {
         code: (json['code'] ?? '').toString(),
         name: (json['name'] ?? '').toString(),
         location: _text(json['address']),
+        capacity: _toDoubleOrNull(json['capacity']),
+        usedQuantity: _toDoubleOrNull(json['usedQuantity']) ?? 0,
+        incomingQuantity: _toDoubleOrNull(json['incomingQuantity']) ?? 0,
       );
+}
+
+double? _toDoubleOrNull(dynamic v) {
+  if (v == null) return null;
+  if (v is num) return v.toDouble();
+  return double.tryParse(v.toString());
 }

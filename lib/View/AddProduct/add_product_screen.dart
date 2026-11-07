@@ -8,6 +8,7 @@ import 'package:stock_management/View/Components/approval_chain_card.dart';
 import 'package:stock_management/View/Components/app_picker_field.dart';
 import 'package:stock_management/View/Components/app_screen_header.dart';
 import 'package:stock_management/View/Components/app_text_field.dart';
+import 'package:stock_management/View/Components/variant_photo_box.dart';
 
 /// Add Product form. ADMIN (PRODUCT_CREATE) saves straight to the server;
 /// other roles send a request — see [AddProductController].
@@ -57,7 +58,7 @@ class AddProductScreen extends GetView<AddProductController> {
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(color: AppColors.danger.withAlpha(90)),
                         ),
-                        child: Text(error, style: const TextStyle(fontSize: 12.5, color: AppColors.danger)),
+                        child: Text(error, style: TextStyle(fontSize: 12.5, color: AppColors.danger)),
                       );
                     }),
                     Obx(
@@ -111,7 +112,7 @@ class AddProductScreen extends GetView<AddProductController> {
       width: double.infinity,
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.cardBg,
         borderRadius: BorderRadius.circular(14),
         border: Border.all(color: AppColors.border),
       ),
@@ -120,12 +121,12 @@ class AddProductScreen extends GetView<AddProductController> {
         children: [
           Text(
             'import_products_title'.tr,
-            style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.w800, color: AppColors.ink),
+            style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w800, color: AppColors.ink),
           ),
           const SizedBox(height: 4),
           Text(
             'import_products_hint'.tr,
-            style: const TextStyle(fontSize: 12, color: AppColors.muted, height: 1.4),
+            style: TextStyle(fontSize: 12, color: AppColors.muted, height: 1.4),
           ),
           const SizedBox(height: 12),
           Obx(
@@ -156,7 +157,7 @@ class AddProductScreen extends GetView<AddProductController> {
   Widget _sectionLabel(String text) {
     return Text(
       text.toUpperCase(),
-      style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700, color: AppColors.textTertiary, letterSpacing: 0.4),
+      style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700, color: AppColors.textTertiary, letterSpacing: 0.4),
     );
   }
 
@@ -183,7 +184,7 @@ class AddProductScreen extends GetView<AddProductController> {
                       SizedBox(height: 6),
                       Text(
                         'add_photo'.tr,
-                        style: const TextStyle(fontSize: 10.5, fontWeight: FontWeight.w600, color: AppColors.textTertiary),
+                        style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.w600, color: AppColors.textTertiary),
                       ),
                     ],
                   )
@@ -216,7 +217,7 @@ class AddProductScreen extends GetView<AddProductController> {
         child: Wrap(
           children: [
             ListTile(
-              leading: const Icon(Icons.photo_camera_outlined, color: AppColors.brand700),
+              leading: Icon(Icons.photo_camera_outlined, color: AppColors.brand700),
               title: Text('action_take_photo'.tr),
               onTap: () {
                 Get.back();
@@ -224,7 +225,7 @@ class AddProductScreen extends GetView<AddProductController> {
               },
             ),
             ListTile(
-              leading: const Icon(Icons.photo_library_outlined, color: AppColors.brand700),
+              leading: Icon(Icons.photo_library_outlined, color: AppColors.brand700),
               title: Text('action_choose_from_gallery'.tr),
               onTap: () {
                 Get.back();
@@ -233,7 +234,7 @@ class AddProductScreen extends GetView<AddProductController> {
             ),
             if (controller.productImage.value != null)
               ListTile(
-                leading: const Icon(Icons.delete_outline, color: AppColors.danger),
+                leading: Icon(Icons.delete_outline, color: AppColors.danger),
                 title: Text('action_remove_photo'.tr),
                 onTap: () {
                   Get.back();
@@ -354,7 +355,7 @@ class AddProductScreen extends GetView<AddProductController> {
                           padding: const EdgeInsets.only(bottom: 10),
                           child: Text(
                             'label_stock_pricing'.tr,
-                            style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: AppColors.textTertiary, letterSpacing: 0.5),
+                            style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: AppColors.textTertiary, letterSpacing: 0.5),
                           ),
                         ),
                         Row(
@@ -388,7 +389,7 @@ class AddProductScreen extends GetView<AddProductController> {
                             options: controller.warehouses.toList(),
                             isLoading: controller.isLoadingOptions.value,
                             required: true,
-                            prefixIcon: const Icon(Icons.store_outlined, size: 20, color: AppColors.textTertiary),
+                            prefixIcon: Icon(Icons.store_outlined, size: 20, color: AppColors.textTertiary),
                             onChanged: (v) => controller.selectedWarehouse.value = v,
                           ),
                         ),
@@ -397,7 +398,7 @@ class AddProductScreen extends GetView<AddProductController> {
                           label: 'field_location'.tr,
                           controller: controller.locationController,
                           hintText: 'hint_location_example'.tr,
-                          prefixIcon: const Icon(Icons.place_outlined, size: 20, color: AppColors.textTertiary),
+                          prefixIcon: Icon(Icons.place_outlined, size: 20, color: AppColors.textTertiary),
                         ),
                         const SizedBox(height: 14),
                         Row(
@@ -449,9 +450,9 @@ class AddProductScreen extends GetView<AddProductController> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Expanded(
-                child: Text(label, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.brand700)),
+                child: Text(label, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.brand700)),
               ),
-              Text('\$${total.toStringAsFixed(2)}', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.brand700)),
+              Text('\$${total.toStringAsFixed(2)}', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.brand700)),
             ],
           ),
         );
@@ -476,7 +477,7 @@ class AddProductScreen extends GetView<AddProductController> {
                 Expanded(
                   child: Text(
                     'has_variants_toggle_label'.tr,
-                    style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.ink),
+                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.ink),
                   ),
                 ),
                 Switch(
@@ -496,7 +497,7 @@ class AddProductScreen extends GetView<AddProductController> {
                   ? Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Padding(
+                        Padding(
                           padding: EdgeInsets.symmetric(vertical: 12),
                           child: Divider(height: 1, thickness: 1, color: AppColors.border),
                         ),
@@ -522,12 +523,12 @@ class AddProductScreen extends GetView<AddProductController> {
                                     Expanded(
                                       child: Text(
                                         'total_cost_value_all_variants'.tr,
-                                        style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.brand700),
+                                        style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.brand700),
                                       ),
                                     ),
                                     Text(
                                       '\$${total.toStringAsFixed(2)}',
-                                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.brand700),
+                                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.brand700),
                                     ),
                                   ],
                                 ),
@@ -580,18 +581,37 @@ class AddProductScreen extends GetView<AddProductController> {
               Expanded(
                 child: Text(
                   'variant_number_label'.trParams({'index': '${index + 1}'}),
-                  style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700, color: AppColors.ink),
+                  style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700, color: AppColors.ink),
                 ),
               ),
               if (controller.variantDrafts.length > 1)
                 InkWell(
                   onTap: () => controller.removeVariantRow(index),
                   borderRadius: BorderRadius.circular(8),
-                  child: const Padding(
+                  child: Padding(
                     padding: EdgeInsets.all(4),
                     child: Icon(Icons.close_rounded, size: 16, color: AppColors.danger),
                   ),
                 ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Obx(
+                () => VariantPhotoBox(
+                  file: draft.image.value,
+                  onPick: (source) => controller.pickVariantImage(index, source),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  'variant_photo_hint'.tr,
+                  style: TextStyle(fontSize: 12, color: AppColors.textTertiary, height: 1.4),
+                ),
+              ),
             ],
           ),
           const SizedBox(height: 12),
@@ -632,7 +652,7 @@ class AddProductScreen extends GetView<AddProductController> {
             padding: const EdgeInsets.only(bottom: 10),
             child: Text(
               'label_stock_pricing'.tr,
-              style: const TextStyle(fontSize: 10.5, fontWeight: FontWeight.w700, color: AppColors.textTertiary, letterSpacing: 0.5),
+              style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.w700, color: AppColors.textTertiary, letterSpacing: 0.5),
             ),
           ),
           Row(
@@ -660,7 +680,7 @@ class AddProductScreen extends GetView<AddProductController> {
                     isLoading: controller.isLoadingOptions.value,
                     required: true,
                     fillColor: AppColors.cardBg,
-                    prefixIcon: const Icon(Icons.store_outlined, size: 20, color: AppColors.textTertiary),
+                    prefixIcon: Icon(Icons.store_outlined, size: 20, color: AppColors.textTertiary),
                     onChanged: (v) => draft.warehouse.value = v,
                   ),
                 ),
@@ -673,7 +693,7 @@ class AddProductScreen extends GetView<AddProductController> {
             controller: draft.locationController,
             hintText: 'hint_location_example'.tr,
             fillColor: AppColors.cardBg,
-            prefixIcon: const Icon(Icons.place_outlined, size: 20, color: AppColors.textTertiary),
+            prefixIcon: Icon(Icons.place_outlined, size: 20, color: AppColors.textTertiary),
           ),
           const SizedBox(height: 14),
           Row(
@@ -713,7 +733,7 @@ class AddProductScreen extends GetView<AddProductController> {
                 alignment: Alignment.centerRight,
                 child: Text(
                   'subtotal_label'.trParams({'total': total.toStringAsFixed(2)}),
-                  style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: AppColors.textTertiary),
+                  style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: AppColors.textTertiary),
                 ),
               );
             },

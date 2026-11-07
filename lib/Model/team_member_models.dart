@@ -1,7 +1,4 @@
 /// One row under More > Team Members, as returned by `GET /users`.
-/// [roleName] is the backend role's name (e.g. STAFF); [roleId] is that
-/// role's UUID, needed when changing it via `PUT /users/:id/role`. [id] and
-/// [staffId] are null only for locally-built items that never hit the API.
 class TeamMemberData {
   const TeamMemberData({
     required this.name,

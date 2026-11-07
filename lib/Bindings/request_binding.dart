@@ -8,6 +8,9 @@ class RequestBinding extends Bindings {
     // controllers must survive tab switches instead of being disposed.
     if (!Get.isRegistered<RequestController>()) {
       Get.put<RequestController>(RequestController(), permanent: true);
+    } else {
+      // Coming back to the tab: read the list from the server again.
+      Get.find<RequestController>().load();
     }
   }
 }

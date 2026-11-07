@@ -4,6 +4,7 @@ import 'package:stock_management/Config/theme/app_theme.dart';
 import 'package:stock_management/Controller/purchase_order_detail_controller.dart';
 import 'package:stock_management/Model/purchase_order_models.dart';
 import 'package:stock_management/View/Components/app_button.dart';
+import 'package:stock_management/View/Components/warehouse_capacity_widgets.dart';
 import 'package:stock_management/View/PurchaseOrders/po_parts.dart';
 
 /// One purchase order: what was ordered, what has arrived, and the action
@@ -30,7 +31,7 @@ class PurchaseOrderDetailScreen extends GetView<PurchaseOrderDetailController> {
                       child: Text(
                         controller.errorMessage.value ?? '',
                         textAlign: TextAlign.center,
-                        style: const TextStyle(fontSize: 13, color: AppColors.muted),
+                        style: TextStyle(fontSize: 13, color: AppColors.muted),
                       ),
                     ),
                   );
@@ -42,6 +43,10 @@ class PurchaseOrderDetailScreen extends GetView<PurchaseOrderDetailController> {
                     padding: const EdgeInsets.fromLTRB(20, 18, 20, 24),
                     children: [
                       _summary(order),
+                      if (order.capacity != null && (order.capacity!.isOver || order.capacity!.isNearlyFull)) ...[
+                        const SizedBox(height: 12),
+                        CapacityBanner(info: order.capacity!, warehouseName: order.warehouseName, onlyWarnings: true),
+                      ],
                       if (order.pendingCatalogCount > 0) ...[
                         const SizedBox(height: 12),
                         _pendingCatalog(order),
@@ -83,7 +88,10 @@ class PurchaseOrderDetailScreen extends GetView<PurchaseOrderDetailController> {
   }
 
   bool _showProgress(PurchaseOrderDetail order) =>
-      order.status == PoStatus.approved || order.status == PoStatus.partiallyReceived || order.status == PoStatus.received;
+      order.status == PoStatus.approved ||
+      order.status == PoStatus.partiallyReceived ||
+      order.status == PoStatus.received ||
+      order.status == PoStatus.closed;
 
   Widget _summary(PurchaseOrderDetail order) {
     return PoCard(
@@ -94,7 +102,7 @@ class PurchaseOrderDetailScreen extends GetView<PurchaseOrderDetailController> {
               Expanded(
                 child: Text(
                   formatMoney(order.totalAmount),
-                  style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: AppColors.brand700),
+                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: AppColors.brand700),
                 ),
               ),
               PoStatusBadge(order.status),
@@ -126,12 +134,12 @@ class PurchaseOrderDetailScreen extends GetView<PurchaseOrderDetailController> {
           children: [
             Text(
               'po_pending_title'.tr,
-              style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.w800, color: AppColors.warning),
+              style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w800, color: AppColors.warning),
             ),
             const SizedBox(height: 4),
             Text(
               'po_pending_note'.trParams({'count': '${order.pendingCatalogCount}'}),
-              style: const TextStyle(fontSize: 12, color: AppColors.warning, height: 1.4),
+              style: TextStyle(fontSize: 12, color: AppColors.warning, height: 1.4),
             ),
             if (controller.canExport) ...[
               const SizedBox(height: 12),
@@ -172,6 +180,7 @@ class PurchaseOrderDetailScreen extends GetView<PurchaseOrderDetailController> {
       final children = <Widget>[];
       if (controller.canReceive) {
         children.add(AppButton(label: 'po_action_receive'.tr, icon: Icons.inventory_2_outlined, onPressed: busy ? null : controller.receive));
+        children.add(AppButton(label: 'po_action_close'.tr, variant: AppButtonVariant.secondary, onPressed: busy ? null : controller.closeOrder));
       }
       if (controller.canDecide) {
         children.add(AppButton(label: 'action_approve'.tr, isLoading: busy, onPressed: busy ? null : controller.approve));
@@ -213,7 +222,7 @@ class _ItemCard extends StatelessWidget {
               Flexible(
                 child: Text(
                   item.displayName,
-                  style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.w700, color: AppColors.ink),
+                  style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w700, color: AppColors.ink),
                 ),
               ),
               if (item.isNew) ...[
@@ -250,7 +259,7 @@ class _ItemCard extends StatelessWidget {
                   if (item.newUnit != null) item.newUnit!,
                   if (item.newSku != null) 'SKU ${item.newSku}',
                 ].join(' • '),
-                style: const TextStyle(fontSize: 11.5, color: AppColors.muted),
+                style: TextStyle(fontSize: 11.5, color: AppColors.muted),
               ),
             ),
           const SizedBox(height: 4),
@@ -259,12 +268,12 @@ class _ItemCard extends StatelessWidget {
               Expanded(
                 child: Text(
                   '${formatQty(item.quantity)} × ${formatMoney(item.unitPrice)}',
-                  style: const TextStyle(fontSize: 12, color: AppColors.muted),
+                  style: TextStyle(fontSize: 12, color: AppColors.muted),
                 ),
               ),
               Text(
                 formatMoney(item.lineTotal),
-                style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.ink),
+                style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.ink),
               ),
             ],
           ),
@@ -296,6 +305,12 @@ class _ReceiptCard extends StatelessWidget {
 
   final GoodsReceiptData receipt;
 
+  String _issueLabel(String reason) => switch (reason) {
+        'DAMAGED' => 'po_issue_damaged'.tr,
+        'WRONG_ITEM' => 'po_issue_wrong'.tr,
+        _ => 'po_issue_not_arrived'.tr,
+      };
+
   @override
   Widget build(BuildContext context) {
     return PoCard(
@@ -307,16 +322,30 @@ class _ReceiptCard extends StatelessWidget {
               Expanded(
                 child: Text(
                   receipt.receiptNumber,
-                  style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.w800, color: AppColors.ink),
+                  style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w800, color: AppColors.ink),
                 ),
               ),
-              Text(formatDate(receipt.createdAt), style: const TextStyle(fontSize: 11.5, color: AppColors.textTertiary)),
+              Text(formatDate(receipt.createdAt), style: TextStyle(fontSize: 11.5, color: AppColors.textTertiary)),
             ],
           ),
           if (receipt.receivedByName != null)
             Padding(
               padding: const EdgeInsets.only(top: 2),
-              child: Text(receipt.receivedByName!, style: const TextStyle(fontSize: 12, color: AppColors.muted)),
+              child: Text(receipt.receivedByName!, style: TextStyle(fontSize: 12, color: AppColors.muted)),
+            ),
+          if (receipt.rating != null)
+            Padding(
+              padding: const EdgeInsets.only(top: 4),
+              child: Row(
+                children: [
+                  for (var i = 1; i <= 5; i++)
+                    Icon(
+                      i <= receipt.rating! ? Icons.star_rounded : Icons.star_outline_rounded,
+                      size: 16,
+                      color: i <= receipt.rating! ? AppColors.warning : AppColors.textTertiary,
+                    ),
+                ],
+              ),
             ),
           const SizedBox(height: 8),
           for (final line in receipt.lines)
@@ -324,14 +353,36 @@ class _ReceiptCard extends StatelessWidget {
               padding: const EdgeInsets.symmetric(vertical: 2),
               child: Row(
                 children: [
-                  Expanded(child: Text(line.name, style: const TextStyle(fontSize: 12.5, color: AppColors.ink))),
-                  Text('+${formatQty(line.quantity)}', style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700, color: AppColors.success)),
+                  Expanded(child: Text(line.name, style: TextStyle(fontSize: 12.5, color: AppColors.ink))),
+                  Text('+${formatQty(line.quantity)}', style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700, color: AppColors.success)),
+                ],
+              ),
+            ),
+          for (final issue in receipt.issues)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 2),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      '${issue.name} • ${_issueLabel(issue.reason)}',
+                      style: TextStyle(fontSize: 12, color: AppColors.muted),
+                    ),
+                  ),
+                  Text(
+                    '-${formatQty(issue.quantity)}',
+                    style: TextStyle(
+                      fontSize: 12.5,
+                      fontWeight: FontWeight.w700,
+                      color: issue.reason == 'NOT_ARRIVED' ? AppColors.warning : AppColors.danger,
+                    ),
+                  ),
                 ],
               ),
             ),
           if (receipt.note != null) ...[
             const SizedBox(height: 6),
-            Text(receipt.note!, style: const TextStyle(fontSize: 12, color: AppColors.muted)),
+            Text(receipt.note!, style: TextStyle(fontSize: 12, color: AppColors.muted)),
           ],
         ],
       ),

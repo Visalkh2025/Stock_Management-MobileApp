@@ -1,29 +1,29 @@
 import 'package:flutter/material.dart';
 
-/// One pill card in the horizontally-scrolling insight row at the top of
-/// the Home screen (e.g. "Reorder needed", "Units in").
-class InsightCardData {
-  const InsightCardData({
+/// One KPI card in the 2×2 grid at the top of the Home screen.
+class KpiData {
+  const KpiData({
     required this.icon,
-    required this.title,
-    required this.subtitle,
+    required this.label,
+    required this.value,
     required this.iconColor,
     required this.iconBg,
-    this.cardColor,
-    this.subtitleColor,
   });
 
   final IconData icon;
-  final String title;
-  final String subtitle;
+  final String label;
+  final String value;
   final Color iconColor;
   final Color iconBg;
+}
 
-  /// Null falls back to the default card fill (white + border).
-  final Color? cardColor;
+/// One slice of the Home donut chart (a category or a product).
+class ChartSlice {
+  const ChartSlice({required this.label, required this.value, required this.color});
 
-  /// Null falls back to the default muted subtitle color.
-  final Color? subtitleColor;
+  final String label;
+  final double value;
+  final Color color;
 }
 
 /// One tile in the 4-column Quick Actions grid.
@@ -33,25 +33,4 @@ class QuickActionData {
   final IconData icon;
   final String label;
   final VoidCallback? onTap;
-}
-
-enum TransactionKind { received, transfer, alert }
-
-/// One row in the Recent Transactions list.
-class TransactionData {
-  const TransactionData({
-    required this.icon,
-    required this.title,
-    required this.subtitle,
-    required this.amountLabel,
-    required this.tagLabel,
-    required this.kind,
-  });
-
-  final IconData icon;
-  final String title;
-  final String subtitle;
-  final String amountLabel;
-  final String tagLabel;
-  final TransactionKind kind;
 }

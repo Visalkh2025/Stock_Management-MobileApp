@@ -59,16 +59,16 @@ class NewPasswordScreen extends GetView<NewPasswordController> {
             color: AppColors.brand300.withAlpha(70),
             borderRadius: BorderRadius.circular(16),
           ),
-          child: const Icon(Icons.lock_outline, size: 24, color: AppColors.brand700),
+          child: Icon(Icons.lock_outline, size: 24, color: AppColors.brand700),
         ),
         Text(
           'create_new_password_title'.tr,
-          style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w800, color: AppColors.ink),
+          style: TextStyle(fontSize: 24, fontWeight: FontWeight.w800, color: AppColors.ink),
         ),
         const SizedBox(height: 6),
         Text(
           'create_new_password_subtitle'.tr,
-          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: AppColors.muted, height: 1.5),
+          style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: AppColors.muted, height: 1.5),
         ),
       ],
     );
@@ -84,7 +84,7 @@ class NewPasswordScreen extends GetView<NewPasswordController> {
           Get.offAllNamed(Routes.login);
         },
         borderRadius: BorderRadius.circular(12),
-        child: const SizedBox(
+        child: SizedBox(
           width: 36,
           height: 36,
           child: Icon(Icons.arrow_back, size: 17, color: AppColors.ink),

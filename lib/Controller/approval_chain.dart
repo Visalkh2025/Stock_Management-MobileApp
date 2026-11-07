@@ -15,17 +15,17 @@ class ApproverDraft {
 }
 
 /// The approval chain a requester builds for any request (new product, stock
-/// in/out, transfer, adjustment): an ordered list of people, each either a
-/// CERTIFIER (verifies) or an APPROVER (signs off; ADMIN / MANAGER /
-/// SUPER_ADMIN only). The LAST step must be an APPROVER — the server applies
-/// the request as soon as the last step approves.
-///
-/// Plain class (not a controller) so any screen's controller can own one;
-/// the matching UI is `ApprovalChainCard`.
 class ApprovalChain {
-  ApprovalChain({RequestService? requests}) : _requests = requests ?? RequestService();
+  ApprovalChain({RequestService? requests, this.approverRoles}) : _requests = requests ?? RequestService();
 
   final RequestService _requests;
+
+  /// When set, only people holding one of these roles can be picked as an
+  /// Approver (e.g. a Manager's new product must go to an Admin or Super Admin).
+  final Set<String>? approverRoles;
+
+  bool _mayApprove(ApproverCandidate c) =>
+      c.canApprove && (approverRoles == null || c.roles.any(approverRoles!.contains));
 
   static const _certifierCode = 'CERTIFIER';
   static const _approverCode = 'APPROVER';
@@ -89,7 +89,7 @@ class ApprovalChain {
     final onlyApprovers = draft.role.value?.code == _approverCode;
     return [
       for (final c in candidates)
-        if (!usedElsewhere.contains(c.id) && (!onlyApprovers || c.canApprove))
+        if (!usedElsewhere.contains(c.id) && (!onlyApprovers || _mayApprove(c)))
           LookupOption(id: c.id, code: c.staffId, name: c.label),
     ];
   }
@@ -99,7 +99,7 @@ class ApprovalChain {
     // Switching to Approver: a reviewer who may not approve has to be re-picked.
     if (role?.code == _approverCode) {
       final candidate = _candidateFor(draft.reviewer.value);
-      if (candidate != null && !candidate.canApprove) draft.reviewer.value = null;
+      if (candidate != null && !_mayApprove(candidate)) draft.reviewer.value = null;
     }
   }
 

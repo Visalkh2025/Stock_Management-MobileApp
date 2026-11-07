@@ -8,8 +8,11 @@ import 'package:stock_management/View/Components/app_picker_field.dart';
 import 'package:stock_management/View/Components/app_text_field.dart';
 import 'package:stock_management/View/Components/stock_form_parts.dart';
 import 'package:stock_management/View/Components/stock_product_picker.dart';
+import 'package:stock_management/View/Components/warehouse_capacity_widgets.dart';
 import 'package:stock_management/View/PurchaseOrders/po_import_sheet.dart';
+import 'package:stock_management/View/PurchaseOrders/po_reorder_picker.dart';
 import 'package:stock_management/View/PurchaseOrders/po_parts.dart';
+import 'package:stock_management/View/Components/app_snackbar.dart';
 
 /// New / Edit purchase order: supplier, receiving warehouse and the products
 /// (quantity + price each). Save as a draft, or submit for approval.
@@ -30,6 +33,7 @@ class PurchaseOrderFormScreen extends GetView<PurchaseOrderFormController> {
                 return Form(
                   key: controller.formKey,
                   child: ListView(
+                    controller: controller.scrollController,
                     padding: const EdgeInsets.fromLTRB(20, 18, 20, 24),
                     children: [
                       PoSectionLabel('po_section_details'.tr),
@@ -42,7 +46,8 @@ class PurchaseOrderFormScreen extends GetView<PurchaseOrderFormController> {
                           _importButton(context),
                         ],
                       ),
-                      const SizedBox(height: 10),
+                      Align(alignment: Alignment.centerLeft, child: _lowStockButton(context)),
+                      const SizedBox(height: 6),
                       _lines,
                       const SizedBox(height: 14),
                       _totalCard,
@@ -71,6 +76,32 @@ class PurchaseOrderFormScreen extends GetView<PurchaseOrderFormController> {
     );
   }
 
+  /// Opens the list of low / out-of-stock products to add several at once.
+  Widget _lowStockButton(BuildContext context) {
+    return TextButton.icon(
+      onPressed: () => _addLowStock(context),
+      icon: const Icon(Icons.warning_amber_rounded, size: 18),
+      label: Text('po_add_low_stock'.tr, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
+    );
+  }
+
+  Future<void> _addLowStock(BuildContext context) async {
+    final picked = await showModalBottomSheet<List<ReorderItem>>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: AppColors.cardBg,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (_) => PoReorderPicker(excludeCodes: controller.existingCodes),
+    );
+    if (picked == null || picked.isEmpty) return;
+    final result = controller.addReorderItems(picked);
+    final skipped = result.skipped == 0 ? '' : ' • ${'po_import_skipped'.trParams({'count': '${result.skipped}'})}';
+    AppSnackbar.success(
+      'po_add_low_stock'.tr,
+      '${'po_low_stock_added'.trParams({'count': '${result.added}'})}$skipped',
+    );
+  }
+
   /// Pick a file -> the server checks it -> show the result -> add the good rows.
   Future<void> _import(BuildContext context) async {
     final preview = await controller.pickAndPreview();
@@ -85,10 +116,9 @@ class PurchaseOrderFormScreen extends GetView<PurchaseOrderFormController> {
     if (add != true) return;
     final result = controller.applyImport(preview);
     final skipped = result.skipped == 0 ? '' : ' • ${'po_import_skipped'.trParams({'count': '${result.skipped}'})}';
-    Get.snackbar(
+    AppSnackbar.success(
       'po_import_excel'.tr,
       '${'po_import_done'.trParams({'count': '${result.added}'})}$skipped',
-      snackPosition: SnackPosition.BOTTOM,
     );
   }
 
@@ -102,9 +132,13 @@ class PurchaseOrderFormScreen extends GetView<PurchaseOrderFormController> {
             options: controller.suppliers.toList(),
             required: true,
             allowClear: false,
-            prefixIcon: const Icon(Icons.local_shipping_outlined, size: 20, color: AppColors.textTertiary),
+            prefixIcon: Icon(Icons.local_shipping_outlined, size: 20, color: AppColors.textTertiary),
             onChanged: (v) => controller.supplier.value = v,
           ),
+          if (controller.supplierSuggestions.isNotEmpty) ...[
+            const SizedBox(height: 10),
+            _supplierHistory,
+          ],
           const SizedBox(height: 14),
           AppPickerField(
             label: 'po_field_receiving_warehouse'.tr,
@@ -112,9 +146,19 @@ class PurchaseOrderFormScreen extends GetView<PurchaseOrderFormController> {
             options: controller.warehouses.toList(),
             required: true,
             allowClear: false,
-            prefixIcon: const Icon(Icons.warehouse_outlined, size: 20, color: AppColors.textTertiary),
+            prefixIcon: Icon(Icons.warehouse_outlined, size: 20, color: AppColors.textTertiary),
             onChanged: (v) => controller.warehouse.value = v,
           ),
+          if (controller.capacityInfo.value != null && controller.capacityInfo.value!.hasLimit) ...[
+            const SizedBox(height: 12),
+            KeyedSubtree(
+              key: controller.capacityKey,
+              child: CapacityBanner(
+                info: controller.capacityInfo.value!,
+                warehouseName: controller.warehouse.value?.name ?? '',
+              ),
+            ),
+          ],
           if (controller.needsApprover) ...[
             const SizedBox(height: 14),
             AppPickerField(
@@ -123,7 +167,7 @@ class PurchaseOrderFormScreen extends GetView<PurchaseOrderFormController> {
               value: controller.approver.value,
               options: controller.approvers.toList(),
               allowClear: false,
-              prefixIcon: const Icon(Icons.how_to_reg_outlined, size: 20, color: AppColors.textTertiary),
+              prefixIcon: Icon(Icons.how_to_reg_outlined, size: 20, color: AppColors.textTertiary),
               onChanged: (v) => controller.approver.value = v,
             ),
           ],
@@ -134,6 +178,94 @@ class PurchaseOrderFormScreen extends GetView<PurchaseOrderFormController> {
             hintText: 'hint_optional'.tr,
             maxLines: 2,
           ),
+        ],
+      ),
+    );
+  }
+
+  /// Suppliers the products on this order were bought from before; tap one to use it.
+  Widget get _supplierHistory {
+    String date(DateTime? d) =>
+        d == null ? '' : '${d.day.toString().padLeft(2, '0')}/${d.month.toString().padLeft(2, '0')}/${d.year}';
+    final total = controller.suggestionProductCount.value;
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: AppColors.brand50,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppColors.brand100),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.history_rounded, size: 16, color: AppColors.brand700),
+              const SizedBox(width: 6),
+              Text(
+                'po_supplier_history_title'.tr,
+                style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: AppColors.brand700),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          for (final s in controller.supplierSuggestions)
+            InkWell(
+              onTap: () => controller.useSupplier(s),
+              borderRadius: BorderRadius.circular(10),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 6),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Flexible(
+                                child: Text(
+                                  s.name,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.ink),
+                                ),
+                              ),
+                              if (s.isDefault) ...[
+                                const SizedBox(width: 6),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                  decoration: BoxDecoration(color: AppColors.cardBg, borderRadius: BorderRadius.circular(20)),
+                                  child: Text(
+                                    'po_tag_usual'.tr,
+                                    style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: AppColors.brand700),
+                                  ),
+                                ),
+                              ],
+                            ],
+                          ),
+                          Text(
+                            s.products == 0
+                                ? 'po_supplier_history_none'.tr
+                                : [
+                                    'po_supplier_history_sub'.trParams({'n': '${s.products}', 'total': '$total'}),
+                                    if (s.lastOrderedAt != null) date(s.lastOrderedAt),
+                                  ].join(' • '),
+                            style: TextStyle(fontSize: 11, fontWeight: FontWeight.w500, color: AppColors.muted),
+                          ),
+                        ],
+                      ),
+                    ),
+                    controller.supplier.value?.code == s.code
+                        ? Icon(Icons.check_circle_rounded, size: 20, color: AppColors.success)
+                        : Text(
+                            'po_supplier_history_use'.tr,
+                            style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: AppColors.brand700),
+                          ),
+                  ],
+                ),
+              ),
+            ),
         ],
       ),
     );
@@ -173,13 +305,13 @@ class PurchaseOrderFormScreen extends GetView<PurchaseOrderFormController> {
           Expanded(
             child: Text(
               'po_total'.tr,
-              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.muted),
+              style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.muted),
             ),
           ),
           Obx(
             () => Text(
               formatMoney(controller.total),
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: AppColors.brand700),
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: AppColors.brand700),
             ),
           ),
         ],
@@ -191,6 +323,9 @@ class PurchaseOrderFormScreen extends GetView<PurchaseOrderFormController> {
     return Obx(() {
       final error = controller.errorMessage.value;
       final saving = controller.isSaving.value;
+      // A full warehouse can still take a draft; tapping Submit then shows the
+      // capacity banner instead of sending the order.
+      final tooBig = controller.capacityInfo.value?.isOver ?? false;
       return Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -198,7 +333,9 @@ class PurchaseOrderFormScreen extends GetView<PurchaseOrderFormController> {
           AppButton(
             label: (controller.needsApprover ? 'po_action_submit' : 'po_action_create_approved').tr,
             isLoading: saving,
-            onPressed: saving ? null : () => controller.save(submit: true),
+            onPressed: saving
+                ? null
+                : () => tooBig ? controller.showCapacityStatus() : controller.save(submit: true),
           ),
           const SizedBox(height: 10),
           AppButton(
@@ -282,8 +419,17 @@ class _LineCard extends StatelessWidget {
           options: controller.categories.toList(),
           required: true,
           allowClear: false,
-          prefixIcon: const Icon(Icons.category_outlined, size: 20, color: AppColors.textTertiary),
+          prefixIcon: Icon(Icons.category_outlined, size: 20, color: AppColors.textTertiary),
           onChanged: (v) => line.category.value = v,
+        ),
+        const SizedBox(height: 14),
+        AppPickerField(
+          label: 'field_brand'.tr,
+          hintText: 'hint_optional'.tr,
+          value: line.brand.value,
+          options: controller.brands.toList(),
+          prefixIcon: Icon(Icons.sell_outlined, size: 20, color: AppColors.textTertiary),
+          onChanged: (v) => line.brand.value = v,
         ),
         const SizedBox(height: 14),
         Row(
@@ -303,7 +449,7 @@ class _LineCard extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 8),
-        Text('po_new_product_note'.tr, style: const TextStyle(fontSize: 11.5, color: AppColors.muted)),
+        Text('po_new_product_note'.tr, style: TextStyle(fontSize: 11.5, color: AppColors.muted)),
       ],
     );
   }
@@ -319,14 +465,14 @@ class _LineCard extends StatelessWidget {
               Expanded(
                 child: Text(
                   'label_product_n'.trParams({'n': '${index + 1}'}).toUpperCase(),
-                  style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700, color: AppColors.textTertiary, letterSpacing: 0.4),
+                  style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700, color: AppColors.textTertiary, letterSpacing: 0.4),
                 ),
               ),
               if (removable)
                 InkWell(
                   onTap: () => controller.removeLine(line),
                   borderRadius: BorderRadius.circular(10),
-                  child: const Padding(
+                  child: Padding(
                     padding: EdgeInsets.all(4),
                     child: Icon(Icons.close_rounded, size: 18, color: AppColors.textTertiary),
                   ),
@@ -367,7 +513,7 @@ class _LineCard extends StatelessWidget {
             child: Obx(
               () => Text(
                 '${'po_line_total'.tr}: ${formatMoney(line.total)}',
-                style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700, color: AppColors.ink),
+                style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700, color: AppColors.ink),
               ),
             ),
           ),

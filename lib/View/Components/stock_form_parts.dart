@@ -3,7 +3,9 @@ import 'package:get/get.dart';
 import 'package:stock_management/Config/theme/app_theme.dart';
 import 'package:stock_management/Controller/stock_form_controller.dart';
 import 'package:stock_management/Controller/stock_line.dart';
+import 'package:stock_management/Model/purchase_order_models.dart';
 import 'package:stock_management/View/Components/app_button.dart';
+import 'package:stock_management/View/Components/warehouse_capacity_widgets.dart';
 import 'package:stock_management/View/Components/app_picker_field.dart';
 import 'package:stock_management/View/Components/approval_chain_card.dart';
 
@@ -29,7 +31,7 @@ class StockFormVariantPicker extends StatelessWidget {
           options: line.variantOptions,
           required: true,
           allowClear: false,
-          prefixIcon: const Icon(Icons.style_outlined, size: 20, color: AppColors.textTertiary),
+          prefixIcon: Icon(Icons.style_outlined, size: 20, color: AppColors.textTertiary),
           onChanged: (v) {
             line.variant.value = v;
             onChanged?.call();
@@ -40,8 +42,41 @@ class StockFormVariantPicker extends StatelessWidget {
   }
 }
 
-/// Bottom of a stock-movement form: the approval chain (only for people who
-/// must send a request), the error banner and the submit button.
+/// Bottom of a stock-movement form: the approval chain (only for people who must send a request), the error banner and the submit button.
+class StockCapacityBanners extends StatelessWidget {
+  const StockCapacityBanners({super.key, required this.controller});
+
+  final StockFormController controller;
+
+  @override
+  Widget build(BuildContext context) {
+    return Obx(() {
+      final totals = controller.incomingTotals;
+      if (totals.isEmpty) return const SizedBox.shrink();
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          for (final entry in totals.entries)
+            FutureBuilder<WarehouseCapacity?>(
+              key: ValueKey('${entry.key}|${entry.value}'),
+              future: controller.capacityFor(entry.key, entry.value),
+              builder: (context, snapshot) {
+                final info = snapshot.data;
+                if (info == null) return const SizedBox.shrink();
+                return CapacityBanner(
+                  info: info,
+                  warehouseName: controller.warehouseNameOf(entry.key),
+                  onlyWarnings: true,
+                  messagePrefix: 'stock_capacity',
+                );
+              },
+            ),
+        ],
+      );
+    });
+  }
+}
+
 class StockFormFooter extends StatelessWidget {
   const StockFormFooter({super.key, required this.controller, required this.saveLabel});
 
@@ -59,7 +94,7 @@ class StockFormFooter extends StatelessWidget {
         if (controller.needsApproval) ...[
           Text(
             'section_approvers'.tr.toUpperCase(),
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 11.5,
               fontWeight: FontWeight.w700,
               color: AppColors.textTertiary,
@@ -70,6 +105,7 @@ class StockFormFooter extends StatelessWidget {
           ApprovalChainCard(chain: controller.chain, helpText: 'hint_approver_help_stock'.tr),
           const SizedBox(height: 18),
         ],
+        StockCapacityBanners(controller: controller),
         Obx(() {
           final error = controller.errorMessage.value;
           if (error == null) return const SizedBox.shrink();
@@ -81,7 +117,7 @@ class StockFormFooter extends StatelessWidget {
               borderRadius: BorderRadius.circular(12),
               border: Border.all(color: AppColors.danger.withAlpha(90)),
             ),
-            child: Text(error, style: const TextStyle(fontSize: 12.5, color: AppColors.danger)),
+            child: Text(error, style: TextStyle(fontSize: 12.5, color: AppColors.danger)),
           );
         }),
         Obx(

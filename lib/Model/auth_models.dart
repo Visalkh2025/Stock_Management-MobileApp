@@ -1,7 +1,4 @@
-/// Minimal shape of the `user` object `/auth/login` returns (itself the
-/// response of the backend's `UsersService.getMe`). It carries a lot more
-/// (permissions, menus, full profile) than is modeled here — add fields as
-/// more screens need them instead of re-parsing the raw JSON elsewhere.
+/// Minimal shape of the `user` object `/auth/login` returns (itself the response of the backend's `UsersService.getMe`).
 class AuthUser {
   const AuthUser({
     required this.id,

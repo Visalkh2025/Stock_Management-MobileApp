@@ -4,16 +4,9 @@ import 'package:stock_management/Model/stock_models.dart';
 import 'package:stock_management/View/Components/product_image.dart';
 import 'package:stock_management/View/Components/product_variant_row.dart';
 
-/// One product/SKU row on the Stock screen — icon tile, name/SKU/warehouse,
-/// and a right-aligned quantity + status badge.
-///
-/// When [StockItemData.hasVariants] is true the row grows a chevron and
-/// becomes an accordion: tapping it toggles [expanded] in place (via
-/// [onToggleExpand]) to reveal each variant, instead of navigating away —
-/// [onTap] (open Product Detail) is then reached through the "View full
-/// details" row inside the expanded panel. A product with no variants keeps
-/// the original behavior: the whole card is just a tap target for [onTap].
-class StockItemCard extends StatelessWidget {
+/// One product/SKU row on the Stock screen. For a product with variants,
+/// tapping a variant in the expanded list shows that variant's photo.
+class StockItemCard extends StatefulWidget {
   const StockItemCard({
     super.key,
     required this.data,
@@ -26,6 +19,61 @@ class StockItemCard extends StatelessWidget {
   final VoidCallback? onTap;
   final bool expanded;
   final VoidCallback? onToggleExpand;
+
+  @override
+  State<StockItemCard> createState() => _StockItemCardState();
+}
+
+class _StockItemCardState extends State<StockItemCard> {
+  String? _selectedCode;
+
+  @override
+  Widget build(BuildContext context) {
+    ProductVariantData? selected;
+    for (final v in widget.data.variants) {
+      if (v.variantCode == _selectedCode) selected = v;
+    }
+    return _StockItemCardView(
+      data: widget.data,
+      onTap: widget.onTap,
+      expanded: widget.expanded,
+      onToggleExpand: widget.onToggleExpand,
+      selectedVariant: selected,
+      onSelectVariant: (v) => setState(() => _selectedCode = _selectedCode == v.variantCode ? null : v.variantCode),
+    );
+  }
+}
+
+class _StockItemCardView extends StatelessWidget {
+  const _StockItemCardView({
+    required this.data,
+    this.onTap,
+    this.expanded = false,
+    this.onToggleExpand,
+    this.selectedVariant,
+    this.onSelectVariant,
+  });
+
+  final StockItemData data;
+  final VoidCallback? onTap;
+  final bool expanded;
+  final VoidCallback? onToggleExpand;
+  final ProductVariantData? selectedVariant;
+  final ValueChanged<ProductVariantData>? onSelectVariant;
+
+  /// The photo shown on the card: the selected variant's, else the product's,
+  /// else the first variant that has one.
+  String? get _photo {
+    final own = selectedVariant?.imageUrl;
+    if (own != null && own.trim().isNotEmpty) return own;
+    final product = data.imageUrl;
+    if (product != null && product.trim().isNotEmpty) return product;
+    for (final v in data.variants) {
+      final url = v.imageUrl;
+      if (url != null && url.trim().isNotEmpty) return url;
+    }
+    return null;
+  }
 
   Color get _statusColor {
     switch (data.status) {
@@ -69,7 +117,7 @@ class StockItemCard extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  ProductImage(url: data.imageUrl, size: 46, radius: 14),
+                  ProductImage(url: _photo, size: 46, radius: 14),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Column(
@@ -78,7 +126,7 @@ class StockItemCard extends StatelessWidget {
                       children: [
                         Text(
                           data.name,
-                          style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.w700, color: AppColors.ink),
+                          style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w700, color: AppColors.ink),
                           overflow: TextOverflow.ellipsis,
                         ),
                         const SizedBox(height: 1),
@@ -86,7 +134,7 @@ class StockItemCard extends StatelessWidget {
                           hasVariants
                               ? '${data.sku} • ${data.variants.length} variants'
                               : '${data.sku} • ${data.warehouse}',
-                          style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w500, color: AppColors.muted),
+                          style: TextStyle(fontSize: 11, fontWeight: FontWeight.w500, color: AppColors.muted),
                           overflow: TextOverflow.ellipsis,
                         ),
                       ],
@@ -99,7 +147,7 @@ class StockItemCard extends StatelessWidget {
                     children: [
                       Text(
                         '${data.quantity}',
-                        style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: AppColors.ink),
+                        style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: AppColors.ink),
                       ),
                       const SizedBox(height: 3),
                       Container(
@@ -117,7 +165,7 @@ class StockItemCard extends StatelessWidget {
                     AnimatedRotation(
                       turns: expanded ? 0.5 : 0,
                       duration: const Duration(milliseconds: 200),
-                      child: const Icon(Icons.keyboard_arrow_down_rounded, size: 20, color: AppColors.textTertiary),
+                      child: Icon(Icons.keyboard_arrow_down_rounded, size: 20, color: AppColors.textTertiary),
                     ),
                   ],
                 ],
@@ -131,14 +179,19 @@ class StockItemCard extends StatelessWidget {
                       ? Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Padding(
+                            Padding(
                               padding: EdgeInsets.symmetric(vertical: 10),
                               child: Divider(height: 1, thickness: 1, color: AppColors.border),
                             ),
-                            for (final variant in data.variants) ProductVariantRow(data: variant),
+                            for (final variant in data.variants)
+                              ProductVariantRow(
+                                data: variant,
+                                selected: variant.variantCode == selectedVariant?.variantCode,
+                                onTap: onSelectVariant == null ? null : () => onSelectVariant!(variant),
+                              ),
                             InkWell(
                               onTap: onTap,
-                              child: const Padding(
+                              child: Padding(
                                 padding: EdgeInsets.only(top: 4),
                                 child: Text(
                                   'View full details',

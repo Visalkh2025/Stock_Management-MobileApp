@@ -1,6 +1,7 @@
 import 'package:stock_management/Config/api_config.dart';
 import 'package:stock_management/Model/auth_models.dart';
 import 'package:stock_management/Services/api_client.dart';
+import 'package:stock_management/Services/api_exception.dart';
 import 'package:stock_management/Services/token_storage_service.dart';
 
 /// Everything auth-related: sign in, sign out, and the stored session.
@@ -35,11 +36,7 @@ class AuthService {
     return result;
   }
 
-  /// Calls `POST /auth/change-password` with the access token saved at
-  /// sign-in (works for both the must-change-password flow right after
-  /// login and any future "change my password" screen). On success, marks
-  /// the local session as no longer needing a password change so the next
-  /// login goes straight to Home.
+  /// Calls `POST /auth/change-password` with the access token saved at sign-in (works for both the must-change-password flow right after login and any future "change my password" screen).
   Future<void> changePassword({
     required String currentPassword,
     required String newPassword,
@@ -51,6 +48,84 @@ class AuthService {
 
     await _tokenStorage.setMustChangePassword(false);
   }
+
+  /// Called once at app start.
+  Future<AuthUser?> restoreSession() async {
+    if (!await _tokenStorage.hasSession()) return null;
+    // A temporary password still has to be replaced: needs the login screen.
+    if (await _tokenStorage.getMustChangePassword()) {
+      await _tokenStorage.clear();
+      return null;
+    }
+    try {
+      return await _fetchMe();
+    } on ApiException catch (e) {
+      // Server unreachable etc.: keep the tokens, just show login this time.
+      if (!e.isUnauthorized) return null;
+      if (!await _tryRefresh()) {
+        await _tokenStorage.clear();
+        return null;
+      }
+      try {
+        return await _fetchMe();
+      } on ApiException {
+        return null;
+      }
+    }
+  }
+
+  Future<AuthUser> _fetchMe() async {
+    final json = await _apiClient.get(ApiConfig.me);
+    return AuthUser.fromJson(json as Map<String, dynamic>);
+  }
+
+  Future<bool> _tryRefresh() async {
+    final refresh = await _tokenStorage.getRefreshToken();
+    if (refresh == null || refresh.isEmpty) return false;
+    try {
+      final json = await _apiClient.post(
+        ApiConfig.refreshToken,
+        auth: false,
+        body: {'refreshToken': refresh},
+      ) as Map<String, dynamic>;
+      final mustChange = json['mustChangePassword'] == true;
+      await _tokenStorage.saveSession(
+        accessToken: json['accessToken'] as String,
+        refreshToken: json['refreshToken'] as String,
+        mustChangePassword: mustChange,
+        staffId: await _tokenStorage.getStaffId() ?? '',
+      );
+      return !mustChange;
+    } on ApiException {
+      return false;
+    }
+  }
+
+
+  /// Forgot password, step 1: emails a 6-digit code to the account's address.
+  Future<void> forgotPassword(String staffId) async {
+    await _apiClient.post(ApiConfig.forgotPassword, auth: false, body: {'staffId': staffId});
+  }
+
+  /// Step 2: checks the code. Returns the one-time reset token.
+  Future<String> verifyResetOtp({required String staffId, required String otp}) async {
+    final json = await _apiClient.post(
+      ApiConfig.verifyResetOtp,
+      auth: false,
+      body: {'staffId': staffId, 'otp': otp},
+    );
+    return (json as Map<String, dynamic>)['resetToken'].toString();
+  }
+
+  /// Step 3: sets the new password (the server signs the user out everywhere).
+  Future<void> resetPassword({required String resetToken, required String newPassword}) async {
+    await _apiClient.post(
+      ApiConfig.resetPassword,
+      auth: false,
+      body: {'resetToken': resetToken, 'newPassword': newPassword},
+    );
+  }
+
   Future<void> logout() async {
     await _tokenStorage.clear();
   }

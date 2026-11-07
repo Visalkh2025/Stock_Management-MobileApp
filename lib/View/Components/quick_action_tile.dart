@@ -38,7 +38,7 @@ class QuickActionTile extends StatelessWidget {
                 Text(
                   data.label,
                   textAlign: TextAlign.center,
-                  style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: AppColors.brand700),
+                  style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: AppColors.brand700),
                 ),
               ],
             ),

@@ -9,18 +9,6 @@ class AppBottomNavItem {
   final int? badgeCount;
 }
 
-/// App-wide bottom navigation bar: 2 items, an empty center slot (for the
-/// raised [AppBottomNavCenterButton], docked separately — see that widget's
-/// doc comment for why), then 2 more items. The active item sits on a pill
-/// background. Reused across every main (post-login) screen — Home, Stock,
-/// Requests, More.
-///
-/// Renders as a floating pill — inset from the screen edges with rounded
-/// corners and a soft shadow — rather than a bar glued flush to the bottom
-/// edge. The outer [Padding] carries no top inset, so the pill's own top
-/// edge is still the top of this widget's layout box; that's what keeps
-/// [AppBottomNavCenterButton] (docked via `centerDocked`) sitting flush on
-/// the pill instead of floating in the gap below it.
 class AppBottomNavBar extends StatelessWidget {
   const AppBottomNavBar({
     super.key,
@@ -34,9 +22,6 @@ class AppBottomNavBar extends StatelessWidget {
   final int currentIndex;
   final ValueChanged<int> onTap;
 
-  /// Width reserved in the middle of the bar so the docked center button
-  /// (see [AppBottomNavCenterButton]) has breathing room and the side items
-  /// don't crowd it. Purely a layout spacer — no button lives here.
   static const double _centerSlotWidth = 64;
 
   static const double _barHeight = 60;
@@ -56,9 +41,9 @@ class AppBottomNavBar extends StatelessWidget {
         height: _barHeight,
         padding: const EdgeInsets.symmetric(horizontal: 8),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: AppColors.cardBg,
           borderRadius: BorderRadius.circular(26),
-          border: Border.all(color: Colors.white.withValues(alpha: 0.6)),
+          border: Border.all(color: AppColors.cardBg.withValues(alpha: 0.6)),
         ),
         child: Row(
           children: [
@@ -97,7 +82,7 @@ class AppBottomNavBar extends StatelessWidget {
                     height: 28,
                     decoration: BoxDecoration(
                       gradient: isActive
-                          ? const LinearGradient(
+                          ? LinearGradient(
                               begin: Alignment.topLeft,
                               end: Alignment.bottomRight,
                               colors: [AppColors.brand600, AppColors.brand700],
@@ -169,19 +154,6 @@ class AppBottomNavBar extends StatelessWidget {
 }
 
 /// The raised purple circle docked over the bottom nav bar's top edge.
-/// Pass it as `Scaffold.floatingActionButton` alongside
-/// `floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked`
-/// — Flutter positions it centered, straddling the bottom bar's top edge.
-///
-/// This used to live inside [AppBottomNavBar] itself, floated above the bar
-/// with an `OverflowBox` + `Transform.translate`. That made it *paint*
-/// outside the bar's own layout box, but Flutter's hit-testing rejects a
-/// touch outside a widget's own bounds before it ever reaches a child
-/// painted past that box — so most of the visible circle was silently
-/// untappable (only a thin sliver near its bottom edge actually was).
-/// Docking it as the Scaffold's real floating action button uses Flutter's
-/// own, correctly hit-tested mechanism for exactly this "half over the
-/// bottom bar" look instead.
 class AppBottomNavCenterButton extends StatelessWidget {
   const AppBottomNavCenterButton({
     super.key,
@@ -224,19 +196,12 @@ class AppBottomNavCenterButton extends StatelessWidget {
             height: size,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              gradient: const LinearGradient(
+              gradient: LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
                 colors: [AppColors.brand700, AppColors.brand600],
               ),
               border: Border.all(color: AppColors.cardBg, width: 4),
-              boxShadow: [
-                BoxShadow(
-                  color: AppColors.brand600.withValues(alpha: 0.38),
-                  blurRadius: 32,
-                  offset: const Offset(0, 16),
-                ),
-              ],
             ),
             alignment: Alignment.center,
             child: icon != null

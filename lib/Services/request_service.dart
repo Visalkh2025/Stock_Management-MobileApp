@@ -51,6 +51,7 @@ class RequestService {
     required List<Map<String, dynamic>> stock,
     required List<Map<String, dynamic>> approvers,
     File? image,
+    Map<String, File> variantImages = const {},
     String? remark,
   }) async {
     final fields = <String, String>{
@@ -65,13 +66,13 @@ class RequestService {
     if (image != null) {
       files.add(await imageMultipart('image', image));
     }
+    for (final entry in variantImages.entries) {
+      files.add(await imageMultipart('variantImage[${entry.key}]', entry.value));
+    }
     await _apiClient.postMultipart(ApiConfig.requests, fields: fields, files: files);
   }
 
-  /// `POST /requests` for a stock movement — [requestType] is STOCK_IN,
-  /// STOCK_OUT, STOCK_TRANSFER or STOCK_ADJUSTMENT. Pass [stock] rows for
-  /// in / out / transfer, or [adjustments] rows for an adjustment (the shapes
-  /// the API validates). [approvers] is the ordered chain.
+  /// `POST /requests` for a stock movement.
   Future<void> createStockRequest({
     required String requestType,
     List<Map<String, dynamic>> stock = const [],

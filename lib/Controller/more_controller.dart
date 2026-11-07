@@ -52,6 +52,10 @@ class MoreController extends GetxController {
 
   void openPurchaseOrders() => Get.toNamed(Routes.purchaseOrders);
 
+  void openCustomerOrders() => Get.toNamed(Routes.customerOrders);
+
+  void openStockHistory() => Get.toNamed(Routes.stockHistory);
+
   void openReports() => Get.toNamed(Routes.reports);
 
   void openTeamMembers() => Get.toNamed(Routes.teamMembers);

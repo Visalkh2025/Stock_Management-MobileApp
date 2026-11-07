@@ -24,12 +24,12 @@ class VariantMetaRow extends StatelessWidget {
       ),
       child: Row(
         children: [
-          const Icon(Icons.store_outlined, size: 14, color: AppColors.textTertiary),
+          Icon(Icons.store_outlined, size: 14, color: AppColors.textTertiary),
           const SizedBox(width: 5),
           Expanded(
             child: Text(
               variant.warehouse,
-              style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w600, color: AppColors.ink),
+              style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w600, color: AppColors.ink),
               overflow: TextOverflow.ellipsis,
             ),
           ),
@@ -49,7 +49,7 @@ class VariantMetaRow extends StatelessWidget {
       children: [
         Text(
           label.toUpperCase(),
-          style: const TextStyle(fontSize: 9, fontWeight: FontWeight.w700, color: AppColors.textTertiary, letterSpacing: 0.3),
+          style: TextStyle(fontSize: 9, fontWeight: FontWeight.w700, color: AppColors.textTertiary, letterSpacing: 0.3),
         ),
         const SizedBox(height: 1),
         Text(value, style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w800, color: color)),
@@ -75,7 +75,7 @@ class VariantSubtotalLine extends StatelessWidget {
         alignment: Alignment.centerRight,
         child: Text(
           'Subtotal: ${formatPrice(cost * variant.quantity)}',
-          style: const TextStyle(fontSize: 10.5, fontWeight: FontWeight.w700, color: AppColors.textTertiary),
+          style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.w700, color: AppColors.textTertiary),
         ),
       ),
     );
@@ -99,9 +99,9 @@ class TotalValueBox extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Expanded(
-            child: Text(label, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.brand700)),
+            child: Text(label, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.brand700)),
           ),
-          Text(formatPrice(value), style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.brand700)),
+          Text(formatPrice(value), style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.brand700)),
         ],
       ),
     );

@@ -9,13 +9,7 @@ import 'package:stock_management/View/Components/app_button.dart';
 import 'package:stock_management/View/Components/app_screen_header.dart';
 import 'package:stock_management/View/Components/swipe_actions.dart';
 
-/// More > Roles & Permissions. A single hub screen with two tabs — Roles
-/// (role identity + the permissions it grants) and Permissions (the
-/// system-wide capability catalog those grants are drawn from) — the
-/// mobile stand-in for what the web app splits across two full pages.
-/// Also replaces the web's separate "Category Matrix" tab: the
-/// Permissions tab here is always grouped by category, so there's no
-/// second, redundant view of the same handful of rows.
+/// More > Roles & Permissions.
 class RbacHubScreen extends GetView<RbacHubController> {
   const RbacHubScreen({super.key});
 
@@ -182,7 +176,7 @@ class RbacHubScreen extends GetView<RbacHubController> {
   Widget _sectionLabel(String text) {
     return Text(
       text.toUpperCase(),
-      style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700, color: AppColors.textTertiary, letterSpacing: 0.4),
+      style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700, color: AppColors.textTertiary, letterSpacing: 0.4),
     );
   }
 
@@ -233,7 +227,7 @@ class RbacHubScreen extends GetView<RbacHubController> {
               Expanded(
                 child: Text(
                   role.name,
-                  style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: AppColors.ink),
+                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: AppColors.ink),
                 ),
               ),
               Container(
@@ -244,20 +238,20 @@ class RbacHubScreen extends GetView<RbacHubController> {
                     'count': '${role.permissionCodes.length}',
                     'word': (role.permissionCodes.length == 1 ? 'unit_permission' : 'unit_permissions').tr,
                   }),
-                  style: const TextStyle(fontSize: 10.5, fontWeight: FontWeight.w700, color: AppColors.brand700),
+                  style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.w700, color: AppColors.brand700),
                 ),
               ),
             ],
           ),
           const SizedBox(height: 4),
-          Text(role.description, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: AppColors.muted)),
+          Text(role.description, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: AppColors.muted)),
           const SizedBox(height: 14),
           _sectionLabel('section_assigned_permissions'.tr),
           const SizedBox(height: 8),
           if (role.permissionCodes.isEmpty)
             Text(
               'no_permissions_assigned_yet'.tr,
-              style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w500, color: AppColors.textTertiary),
+              style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w500, color: AppColors.textTertiary),
             )
           else
             Wrap(
@@ -268,7 +262,7 @@ class RbacHubScreen extends GetView<RbacHubController> {
               ],
             ),
           const SizedBox(height: 14),
-          const Divider(height: 1, thickness: 1, color: AppColors.border),
+          Divider(height: 1, thickness: 1, color: AppColors.border),
           const SizedBox(height: 12),
           AppButton(
             label: 'action_manage_permissions'.tr,
@@ -288,11 +282,11 @@ class RbacHubScreen extends GetView<RbacHubController> {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(code, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: AppColors.brand700)),
+          Text(code, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: AppColors.brand700)),
           InkWell(
             onTap: () => _roles.removePermission(role, code),
             borderRadius: BorderRadius.circular(20),
-            child: const Padding(
+            child: Padding(
               padding: EdgeInsets.all(4),
               child: Icon(Icons.close_rounded, size: 13, color: AppColors.brand700),
             ),
@@ -306,23 +300,23 @@ class RbacHubScreen extends GetView<RbacHubController> {
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: Text('delete_role_title'.tr, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: AppColors.ink)),
+        title: Text('delete_role_title'.tr, style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: AppColors.ink)),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         content: Text(
           'delete_role_message'.trParams({'name': role.name}),
-          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: AppColors.muted),
+          style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: AppColors.muted),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(),
-            child: Text('action_cancel'.tr, style: const TextStyle(color: AppColors.muted, fontWeight: FontWeight.w600)),
+            child: Text('action_cancel'.tr, style: TextStyle(color: AppColors.muted, fontWeight: FontWeight.w600)),
           ),
           TextButton(
             onPressed: () {
               Navigator.of(dialogContext).pop();
               _roles.delete(role);
             },
-            child: Text('action_delete'.tr, style: const TextStyle(color: AppColors.danger, fontWeight: FontWeight.w700)),
+            child: Text('action_delete'.tr, style: TextStyle(color: AppColors.danger, fontWeight: FontWeight.w700)),
           ),
         ],
       ),
@@ -365,7 +359,7 @@ class RbacHubScreen extends GetView<RbacHubController> {
             const SizedBox(width: 8),
             Text(
               category.isEmpty ? 'uncategorized_label'.tr : category,
-              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: AppColors.ink),
+              style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: AppColors.ink),
             ),
           ],
         ),
@@ -402,11 +396,11 @@ class RbacHubScreen extends GetView<RbacHubController> {
                     decoration: BoxDecoration(color: AppColors.brand50, borderRadius: BorderRadius.circular(6)),
                     child: Text(
                       item.code,
-                      style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700, color: AppColors.brand700),
+                      style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700, color: AppColors.brand700),
                     ),
                   ),
                   const SizedBox(height: 6),
-                  Text(item.description, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: AppColors.muted)),
+                  Text(item.description, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: AppColors.muted)),
                 ],
               ),
             ),
@@ -420,23 +414,23 @@ class RbacHubScreen extends GetView<RbacHubController> {
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: Text('delete_permission_title'.tr, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: AppColors.ink)),
+        title: Text('delete_permission_title'.tr, style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: AppColors.ink)),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         content: Text(
           'delete_permission_message'.trParams({'code': item.code}),
-          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: AppColors.muted),
+          style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: AppColors.muted),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(),
-            child: Text('action_cancel'.tr, style: const TextStyle(color: AppColors.muted, fontWeight: FontWeight.w600)),
+            child: Text('action_cancel'.tr, style: TextStyle(color: AppColors.muted, fontWeight: FontWeight.w600)),
           ),
           TextButton(
             onPressed: () {
               Navigator.of(dialogContext).pop();
               _permissions.delete(item);
             },
-            child: Text('action_delete'.tr, style: const TextStyle(color: AppColors.danger, fontWeight: FontWeight.w700)),
+            child: Text('action_delete'.tr, style: TextStyle(color: AppColors.danger, fontWeight: FontWeight.w700)),
           ),
         ],
       ),
@@ -450,9 +444,9 @@ class RbacHubScreen extends GetView<RbacHubController> {
         children: [
           Icon(icon, size: 36, color: AppColors.textTertiary),
           const SizedBox(height: 10),
-          Text(title, style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.w700, color: AppColors.muted)),
+          Text(title, style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w700, color: AppColors.muted)),
           const SizedBox(height: 4),
-          Text(subtitle, style: const TextStyle(fontSize: 12, color: AppColors.textTertiary)),
+          Text(subtitle, style: TextStyle(fontSize: 12, color: AppColors.textTertiary)),
         ],
       ),
     );

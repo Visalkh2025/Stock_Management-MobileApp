@@ -1,12 +1,7 @@
 import 'package:stock_management/Model/master_data_models.dart';
 import 'package:stock_management/Services/api_client.dart';
 
-/// List / create / update / deactivate for one master-data endpoint
-/// (`/categories`, `/brands`, `/suppliers`, `/warehouses`) — they all behave
-/// the same, so one class serves them all.
-///
-/// The API never hard-deletes these: "delete" is `PATCH /:id/deactivate`
-/// (the record disappears from lists but old stock/products keep pointing at it).
+/// List / create / update / deactivate for one master-data endpoint (`/categories`, `/brands`, `/suppliers`, `/warehouses`).
 class MasterDataCrud<T extends MasterRecord> {
   MasterDataCrud({required this.path, required this.fromJson, ApiClient? apiClient})
       : _apiClient = apiClient ?? ApiClient();

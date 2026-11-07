@@ -6,10 +6,7 @@ import 'package:stock_management/View/Components/app_button.dart';
 import 'package:stock_management/View/Components/app_screen_header.dart';
 import 'package:stock_management/View/Components/app_text_field.dart';
 
-/// Add/Edit Role — reached from Roles & Permissions' Roles tab (+Add or a
-/// card's edit icon). Only identity (name/description) — permission
-/// assignment happens afterwards on [RolePermissionsScreen]. See
-/// [RoleFormController].
+/// Add/Edit Role — reached from Roles & Permissions' Roles tab (+Add or a card's edit icon).
 class RoleFormScreen extends GetView<RoleFormController> {
   const RoleFormScreen({super.key});
 
@@ -81,7 +78,7 @@ class RoleFormScreen extends GetView<RoleFormController> {
   Widget _sectionLabel(String text) {
     return Text(
       text.toUpperCase(),
-      style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700, color: AppColors.textTertiary, letterSpacing: 0.4),
+      style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700, color: AppColors.textTertiary, letterSpacing: 0.4),
     );
   }
 
@@ -118,12 +115,12 @@ class RoleFormScreen extends GetView<RoleFormController> {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Icon(Icons.info_outline_rounded, size: 15, color: AppColors.textTertiary),
+        Icon(Icons.info_outline_rounded, size: 15, color: AppColors.textTertiary),
         const SizedBox(width: 8),
         Expanded(
           child: Text(
             'role_hint_note'.tr,
-            style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w500, color: AppColors.textTertiary),
+            style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w500, color: AppColors.textTertiary),
           ),
         ),
       ],

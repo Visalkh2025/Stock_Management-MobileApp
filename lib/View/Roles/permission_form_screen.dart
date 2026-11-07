@@ -6,10 +6,7 @@ import 'package:stock_management/View/Components/app_button.dart';
 import 'package:stock_management/View/Components/app_screen_header.dart';
 import 'package:stock_management/View/Components/app_text_field.dart';
 
-/// Add/Edit Permission — reached from Roles & Permissions' Permissions
-/// tab (+Add or a row's edit icon). Defines a catalog entry only; use a
-/// role card's "Manage permissions" to grant it. See
-/// [PermissionFormController].
+/// Add/Edit Permission — reached from Roles & Permissions' Permissions tab (+Add or a row's edit icon).
 class PermissionFormScreen extends GetView<PermissionFormController> {
   const PermissionFormScreen({super.key});
 
@@ -77,7 +74,7 @@ class PermissionFormScreen extends GetView<PermissionFormController> {
   Widget _sectionLabel(String text) {
     return Text(
       text.toUpperCase(),
-      style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700, color: AppColors.textTertiary, letterSpacing: 0.4),
+      style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700, color: AppColors.textTertiary, letterSpacing: 0.4),
     );
   }
 

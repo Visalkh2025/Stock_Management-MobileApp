@@ -3,10 +3,7 @@ import 'package:stock_management/Config/routes/app_routes.dart';
 import 'package:stock_management/Controller/roles_controller.dart';
 import 'package:stock_management/Model/rbac_models.dart';
 
-/// The system-wide permission catalog behind More > Roles & Permissions'
-/// "Permissions" tab — defining a code here doesn't grant it to anyone;
-/// [RolesController] is what assigns catalog codes to a role. Same
-/// list/search/upsert/delete shape as CategoryController.
+/// The system-wide permission catalog behind More > Roles & Permissions' "Permissions" tab.
 class PermissionsController extends GetxController {
   final _items = <PermissionData>[
     const PermissionData(code: 'product:view', category: 'product', description: 'View inventory items and stock requests'),

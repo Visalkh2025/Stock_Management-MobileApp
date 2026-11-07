@@ -3,13 +3,7 @@ import 'package:stock_management/Controller/permissions_controller.dart';
 import 'package:stock_management/Controller/roles_controller.dart';
 import 'package:stock_management/Model/rbac_models.dart';
 
-/// The full-catalog checklist behind a role card's "Permissions" button —
-/// every code from [PermissionsController], grouped by category, with a
-/// checkbox per code pre-checked from [role]'s current grant set. Save
-/// replaces the role's whole permission set with whatever ends up
-/// checked (see [RolesController.setPermissions]). The role card's own
-/// chip "x" (see RolesController.removePermission) covers the one-tap
-/// single-removal case without opening this screen.
+/// The full-catalog checklist behind a role card's "Permissions" button.
 class RolePermissionsController extends GetxController {
   RoleData get role => Get.arguments as RoleData;
 

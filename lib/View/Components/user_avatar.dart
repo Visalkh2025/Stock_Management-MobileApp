@@ -3,14 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:stock_management/Config/theme/app_theme.dart';
 import 'package:stock_management/Model/profile_models.dart';
 
-/// The signed-in user's avatar, wherever it's shown — the Profile screen,
-/// the More row, the Home header. One widget handles all three states so
-/// none of those screens re-implement the same ternary:
-///  - a freshly-picked local file (mid-edit on the Profile screen), else
-///  - a network URL from the backend (cached via [CachedNetworkImage] —
-///    not re-downloaded every time the widget rebuilds with the same
-///    URL), else
-///  - initials, also used as the network image's placeholder/error state.
+/// The signed-in user's avatar, wherever it's shown — the Profile screen, the More row, the Home header.
 class UserAvatar extends StatelessWidget {
   const UserAvatar({
     super.key,

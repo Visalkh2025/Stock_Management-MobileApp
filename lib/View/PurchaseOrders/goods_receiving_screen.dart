@@ -40,7 +40,7 @@ class GoodsReceivingScreen extends GetView<GoodsReceivingController> {
                     const SizedBox(height: 20),
                     PoSectionLabel('po_section_receive_now'.tr),
                     const SizedBox(height: 4),
-                    Text('po_receive_count_hint'.tr, style: const TextStyle(fontSize: 12, color: AppColors.muted)),
+                    Text('po_receive_count_hint'.tr, style: TextStyle(fontSize: 12, color: AppColors.muted)),
                     const SizedBox(height: 10),
                     for (final item in controller.items) ...[
                       _line(item),
@@ -49,11 +49,15 @@ class GoodsReceivingScreen extends GetView<GoodsReceivingController> {
                     const SizedBox(height: 4),
                     _summary,
                     const SizedBox(height: 14),
-                    AppTextField(
-                      label: 'field_note'.tr,
-                      controller: controller.noteController,
-                      hintText: 'hint_optional'.tr,
-                      maxLines: 2,
+                    _ratingCard,
+                    const SizedBox(height: 14),
+                    PoCard(
+                      child: AppTextField(
+                        label: 'field_note'.tr,
+                        controller: controller.noteController,
+                        hintText: 'hint_optional'.tr,
+                        maxLines: 2,
+                      ),
                     ),
                     const SizedBox(height: 20),
                     Obx(() {
@@ -81,18 +85,56 @@ class GoodsReceivingScreen extends GetView<GoodsReceivingController> {
     );
   }
 
+  /// Optional 1-5 stars for how the delivery went (tap the same star again to clear).
+  Widget get _ratingCard {
+    return PoCard(
+      child: Obx(() {
+        final value = controller.rating.value;
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'po_rate_title'.tr,
+              style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w800, color: AppColors.ink),
+            ),
+            const SizedBox(height: 2),
+            Text('po_rate_hint'.tr, style: TextStyle(fontSize: 11.5, color: AppColors.muted)),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                for (var i = 1; i <= 5; i++)
+                  InkWell(
+                    borderRadius: BorderRadius.circular(20),
+                    onTap: () => controller.rating.value = value == i ? 0 : i,
+                    child: Padding(
+                      padding: const EdgeInsets.only(right: 4),
+                      child: Icon(
+                        i <= value ? Icons.star_rounded : Icons.star_outline_rounded,
+                        size: 34,
+                        color: i <= value ? AppColors.warning : AppColors.textTertiary,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ],
+        );
+      }),
+    );
+  }
+
   Widget _line(PurchaseOrderItemData item) {
     return PoCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(item.displayName, style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.w700, color: AppColors.ink)),
+          Text(item.displayName, style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w700, color: AppColors.ink)),
           if (item.isNew)
             Padding(
               padding: const EdgeInsets.only(top: 2),
               child: Text(
                 'po_receive_creates_product'.tr,
-                style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w600, color: AppColors.brand700),
+                style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w600, color: AppColors.brand700),
               ),
             ),
           const SizedBox(height: 4),
@@ -102,7 +144,7 @@ class GoodsReceivingScreen extends GetView<GoodsReceivingController> {
               'received': formatQty(item.receivedQuantity),
               'remaining': formatQty(item.remainingQuantity),
             }),
-            style: const TextStyle(fontSize: 12, color: AppColors.muted),
+            style: TextStyle(fontSize: 12, color: AppColors.muted),
           ),
           const SizedBox(height: 12),
           AppTextField(
@@ -110,6 +152,12 @@ class GoodsReceivingScreen extends GetView<GoodsReceivingController> {
             controller: controller.fields[item.id],
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
             validator: (v) => controller.validator(item, v),
+          ),
+          const SizedBox(height: 10),
+          AppTextField(
+            label: 'po_field_location'.tr,
+            controller: controller.locations[item.id],
+            hintText: 'po_field_location_hint'.tr,
           ),
           const SizedBox(height: 8),
           _matchBadge(item),

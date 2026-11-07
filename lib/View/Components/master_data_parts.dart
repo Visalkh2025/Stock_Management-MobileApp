@@ -50,7 +50,7 @@ class MasterFormFooter extends StatelessWidget {
               borderRadius: BorderRadius.circular(12),
               border: Border.all(color: AppColors.danger.withAlpha(90)),
             ),
-            child: Text(error, style: const TextStyle(fontSize: 12.5, color: AppColors.danger)),
+            child: Text(error, style: TextStyle(fontSize: 12.5, color: AppColors.danger)),
           );
         }),
         Obx(
@@ -78,12 +78,12 @@ class MasterListError extends StatelessWidget {
       padding: const EdgeInsets.only(top: 60),
       child: Column(
         children: [
-          const Icon(Icons.cloud_off_rounded, size: 36, color: AppColors.textTertiary),
+          Icon(Icons.cloud_off_rounded, size: 36, color: AppColors.textTertiary),
           const SizedBox(height: 10),
           Text(
             message,
             textAlign: TextAlign.center,
-            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.muted),
+            style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.muted),
           ),
           const SizedBox(height: 14),
           AppButton(label: 'action_retry'.tr, onPressed: onRetry, variant: AppButtonVariant.secondary, expand: false),

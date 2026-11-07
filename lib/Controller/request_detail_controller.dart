@@ -5,6 +5,7 @@ import 'package:stock_management/Controller/stock_controller.dart';
 import 'package:stock_management/Model/request_models.dart';
 import 'package:stock_management/Services/api_exception.dart';
 import 'package:stock_management/Services/request_service.dart';
+import 'package:stock_management/View/Components/app_snackbar.dart';
 
 /// One request. Approve/Reject go to `POST /requests/:id/commit`; the
 /// server only lets the assigned approver whose turn it is act, and tells
@@ -62,11 +63,10 @@ class RequestDetailController extends GetxController {
         await Get.find<StockController>().load();
       }
       Get.back();
-      Get.snackbar(
+      AppSnackbar.show(
+        approve ? SnackKind.success : SnackKind.error,
         message,
         '${request.requestId} • ${request.typeLabel}',
-        snackPosition: SnackPosition.BOTTOM,
-        margin: const EdgeInsets.all(16),
       );
     } on ApiException catch (e) {
       errorMessage.value = e.message;

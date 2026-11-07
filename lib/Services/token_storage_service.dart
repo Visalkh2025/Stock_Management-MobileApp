@@ -1,11 +1,6 @@
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Persists the signed-in session to disk via [SharedPreferences].
-///
-/// Any Service that needs to read, save, or clear the session (the access
-/// token above all) should go through this instead of touching
-/// SharedPreferences directly, so the storage keys stay in exactly one
-/// place.
 class TokenStorageService {
   static const _accessTokenKey = 'auth_access_token';
   static const _refreshTokenKey = 'auth_refresh_token';

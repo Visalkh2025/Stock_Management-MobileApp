@@ -25,7 +25,7 @@ class PoImportSheet extends StatelessWidget {
               padding: const EdgeInsets.fromLTRB(20, 18, 20, 4),
               child: Text(
                 'po_import_title'.tr,
-                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.ink),
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.ink),
               ),
             ),
             Padding(
@@ -101,7 +101,7 @@ class _RowTile extends StatelessWidget {
                 Row(
                   children: [
                     Flexible(
-                      child: Text(title, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.ink)),
+                      child: Text(title, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.ink)),
                     ),
                     if (ok && row.isNew) ...[
                       const SizedBox(width: 6),
@@ -110,7 +110,7 @@ class _RowTile extends StatelessWidget {
                         decoration: BoxDecoration(color: AppColors.brand100, borderRadius: BorderRadius.circular(6)),
                         child: Text(
                           'po_badge_new'.tr,
-                          style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: AppColors.brand700),
+                          style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: AppColors.brand700),
                         ),
                       ),
                     ],

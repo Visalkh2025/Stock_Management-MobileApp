@@ -6,6 +6,7 @@ import 'package:stock_management/Model/stock_models.dart';
 import 'package:stock_management/View/Components/app_main_scaffold.dart';
 import 'package:stock_management/View/Components/app_screen_header.dart';
 import 'package:stock_management/View/Components/stock_item_card.dart';
+import 'package:stock_management/View/Components/stock_item_grid_card.dart';
 
 class StockScreen extends GetView<StockController> {
   const StockScreen({super.key});
@@ -17,6 +18,7 @@ class StockScreen extends GetView<StockController> {
       body: Column(
         children: [
           _header(),
+          _facetRows,
           Expanded(
             // extendBody (AppMainScaffold) lets this reach all the way to the
             // bottom of the screen instead of stopping above the nav bar —
@@ -42,32 +44,233 @@ class StockScreen extends GetView<StockController> {
                   }
                   return RefreshIndicator(
                     onRefresh: controller.load,
-                    child: ListView.separated(
-                    // Bottom padding clears the translucent nav bar (its
-                    // height + its own bottom margin, plus a little
-                    // breathing room) so the last card rests above it
-                    // instead of underneath it.
-                    padding: EdgeInsets.fromLTRB(20, 14, 20, MediaQuery.paddingOf(context).bottom * 0.5 + 76),
-                    itemCount: items.length,
-                    separatorBuilder: (_, index) => const SizedBox(height: 10),
-                    itemBuilder: (context, index) {
-                      final item = items[index];
-                      return Obx(
-                        () => StockItemCard(
-                          data: item,
-                          onTap: () => controller.openItem(item),
-                          expanded: controller.expandedSkus.contains(item.sku),
-                          onToggleExpand: () => controller.toggleExpanded(item.sku),
-                        ),
-                      );
-                    },
-                    ),
+                    child: controller.isGridView.value ? _grid(context, items) : _list(context, items),
                   );
                 },
               ),
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _list(BuildContext context, List<StockItemData> items) {
+    return ListView.separated(
+      padding: EdgeInsets.fromLTRB(20, 14, 20, MediaQuery.paddingOf(context).bottom * 0.5 + 76),
+      itemCount: items.length,
+      separatorBuilder: (_, index) => const SizedBox(height: 10),
+      itemBuilder: (context, index) {
+        final item = items[index];
+        return Obx(
+          () => StockItemCard(
+            data: item,
+            onTap: () => controller.openItem(item),
+            expanded: controller.expandedSkus.contains(item.sku),
+            onToggleExpand: () => controller.toggleExpanded(item.sku),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _grid(BuildContext context, List<StockItemData> items) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        // Two columns with 20px page padding and a 12px gap.
+        final cardWidth = (constraints.maxWidth - 40 - 12) / 2;
+        return GridView.builder(
+          padding: EdgeInsets.fromLTRB(20, 14, 20, MediaQuery.paddingOf(context).bottom * 0.5 + 76),
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2,
+            mainAxisSpacing: 12,
+            crossAxisSpacing: 12,
+            // photo (card width - padding) + name, SKU and quantity rows.
+            mainAxisExtent: cardWidth + 92,
+          ),
+          itemCount: items.length,
+          itemBuilder: (context, index) {
+            final item = items[index];
+            return StockItemGridCard(
+              data: item,
+              imageSize: cardWidth - 20,
+              onTap: () => controller.openItem(item),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  /// Category chips, and — once a category is picked — its brand chips.
+  Widget get _facetRows {
+    return Obx(() {
+      final categories = controller.categoryFacets;
+      if (categories.isEmpty) return const SizedBox.shrink();
+      final brands = controller.brandFacets;
+      final selectedCategory = controller.selectedCategory.value;
+      final selectedBrand = controller.selectedBrand.value;
+      return Padding(
+        padding: const EdgeInsets.only(top: 14),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _chipScroller([
+              _facetChip(
+                label: 'filter_all'.tr,
+                count: controller.categoryAllCount,
+                active: selectedCategory == null,
+                onTap: () => controller.setCategory(null),
+              ),
+              for (final c in categories)
+                _facetChip(
+                  label: c.label,
+                  count: c.count,
+                  active: selectedCategory == c.key,
+                  onTap: () => controller.setCategory(c.key),
+                ),
+            ]),
+            if (brands.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.only(top: 10),
+                child: _chipScroller([
+                  Text(
+                    'stock_brand_label'.tr,
+                    style: TextStyle(
+                      fontSize: 10.5,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: 0.6,
+                      color: AppColors.muted,
+                    ),
+                  ),
+                  _facetChip(
+                    label: 'stock_all_brands'.tr,
+                    active: selectedBrand == null,
+                    small: true,
+                    onTap: () => controller.setBrand(null),
+                  ),
+                  for (final b in brands)
+                    _facetChip(
+                      label: b.label,
+                      active: selectedBrand == b.key,
+                      small: true,
+                      onTap: () => controller.setBrand(b.key),
+                    ),
+                ]),
+              ),
+          ],
+        ),
+      );
+    });
+  }
+
+  Widget _chipScroller(List<Widget> children) {
+    // Full-width row that always starts at the left edge (even when the chips
+    // are few), and whose right edge fades so it's clear the row scrolls.
+    return SizedBox(
+      width: double.infinity,
+      child: ShaderMask(
+        blendMode: BlendMode.dstIn,
+        shaderCallback: (rect) => const LinearGradient(
+          colors: [Colors.white, Colors.white, Colors.transparent],
+          stops: [0, 0.94, 1],
+        ).createShader(rect),
+        child: LayoutBuilder(
+          builder: (context, constraints) => SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: ConstrainedBox(
+              constraints: BoxConstraints(minWidth: constraints.maxWidth - 40),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  for (var i = 0; i < children.length; i++) ...[
+                    if (i > 0) const SizedBox(width: 8),
+                    children[i],
+                  ],
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Category chip (big, filled when active) or — with [small] — a brand
+  /// chip: white pill with a first-letter avatar (or [icon]), a count, and a
+  /// check mark + purple tint when active.
+  Widget _facetChip({
+    required String label,
+    int? count,
+    required bool active,
+    required VoidCallback onTap,
+    bool small = false,
+    String? initial,
+    IconData? icon,
+  }) {
+    final Color fill = small ? (active ? AppColors.brand50 : AppColors.cardBg) : (active ? AppColors.brand700 : AppColors.cardBg);
+    final Color text = small
+        ? (active ? AppColors.brand700 : AppColors.ink)
+        : (active ? Colors.white : AppColors.ink);
+    final Color countFg = small
+        ? (active ? AppColors.brand700 : AppColors.muted)
+        : (active ? Colors.white : AppColors.muted);
+
+    Widget? leading;
+    if (small && icon != null) {
+      leading = Icon(icon, size: 15, color: AppColors.muted);
+    } else if (small && initial != null && initial.isNotEmpty) {
+      leading = Container(
+        width: 20,
+        height: 20,
+        alignment: Alignment.center,
+        decoration: BoxDecoration(color: AppColors.brand50, shape: BoxShape.circle),
+        child: Text(
+          String.fromCharCode(initial.runes.first).toUpperCase(),
+          style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.w800, color: AppColors.brand700),
+        ),
+      );
+    }
+
+    return Material(
+      color: fill,
+      shape: StadiumBorder(
+        side: BorderSide(color: active ? AppColors.brand700 : AppColors.border, width: active && small ? 1.4 : 1),
+      ),
+      child: InkWell(
+        onTap: onTap,
+        customBorder: const StadiumBorder(),
+        child: Container(
+          height: small ? 34 : 36,
+          padding: EdgeInsets.only(left: leading != null ? 8 : (small ? 14 : 14), right: 12),
+          alignment: Alignment.center,
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (leading != null) ...[leading, const SizedBox(width: 6)],
+              Text(label, style: TextStyle(fontSize: small ? 12.5 : 13, fontWeight: FontWeight.w600, color: text)),
+              if (count != null) ...[
+                const SizedBox(width: 8),
+                if (small)
+                  Text('$count', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700, color: countFg))
+                else
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: active ? Colors.white.withAlpha(56) : AppColors.pageBg,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Text(
+                      '$count',
+                      style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: countFg),
+                    ),
+                  ),
+              ],
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -79,9 +282,9 @@ class StockScreen extends GetView<StockController> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.cloud_off_rounded, size: 40, color: AppColors.muted),
+            Icon(Icons.cloud_off_rounded, size: 40, color: AppColors.muted),
             const SizedBox(height: 12),
-            Text(message, textAlign: TextAlign.center, style: const TextStyle(color: AppColors.muted)),
+            Text(message, textAlign: TextAlign.center, style: TextStyle(color: AppColors.muted)),
             const SizedBox(height: 12),
             TextButton(onPressed: controller.load, child: Text('action_retry'.tr)),
           ],
@@ -103,13 +306,13 @@ class StockScreen extends GetView<StockController> {
             ),
             _addButton,
             const SizedBox(width: 8),
+            _viewToggleButton,
+            const SizedBox(width: 8),
             _searchToggleButton,
           ],
         ),
         _searchField,
-        const SizedBox(height: 16),
-        _categoryRow,
-        const SizedBox(height: 10),
+        const SizedBox(height: 14),
         _filterChips,
       ],
     );
@@ -129,6 +332,32 @@ class StockScreen extends GetView<StockController> {
         ),
       ),
     );
+  }
+
+  Widget get _viewToggleButton {
+    return Obx(() {
+      final grid = controller.isGridView.value;
+      return Tooltip(
+        message: grid ? 'stock_view_list'.tr : 'stock_view_grid'.tr,
+        child: Material(
+          color: AppScreenHeader.onHeaderSurface,
+          borderRadius: BorderRadius.circular(12),
+          child: InkWell(
+            onTap: () => controller.setGridView(!grid),
+            borderRadius: BorderRadius.circular(12),
+            child: SizedBox(
+              width: 38,
+              height: 38,
+              child: Icon(
+                grid ? Icons.view_list_rounded : Icons.grid_view_rounded,
+                size: 19,
+                color: AppScreenHeader.onHeader,
+              ),
+            ),
+          ),
+        ),
+      );
+    });
   }
 
   Widget get _searchToggleButton {
@@ -197,33 +426,6 @@ class StockScreen extends GetView<StockController> {
                 ),
               )
             : const SizedBox(width: double.infinity, height: 0),
-      ),
-    );
-  }
-
-  Widget get _categoryRow {
-    return Container(
-      height: 40,
-      padding: const EdgeInsets.symmetric(horizontal: 14),
-      decoration: BoxDecoration(
-        color: AppScreenHeader.onHeaderSurface,
-        borderRadius: BorderRadius.circular(13),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Row(
-            children: [
-              const Icon(Icons.category_outlined, size: 15, color: AppScreenHeader.onHeader),
-              const SizedBox(width: 8),
-              Text(
-                'stock_all_categories'.tr,
-                style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600, color: AppScreenHeader.onHeader),
-              ),
-            ],
-          ),
-          const Icon(Icons.keyboard_arrow_down_rounded, size: 18, color: AppScreenHeader.onHeaderMuted),
-        ],
       ),
     );
   }
@@ -332,12 +534,12 @@ class StockScreen extends GetView<StockController> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.inventory_2_outlined, size: 40, color: AppColors.textTertiary),
+            Icon(Icons.inventory_2_outlined, size: 40, color: AppColors.textTertiary),
             const SizedBox(height: 12),
             Text(
               'empty_no_search_results'.tr,
               textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.muted),
+              style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.muted),
             ),
           ],
         ),

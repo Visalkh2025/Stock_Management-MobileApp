@@ -6,10 +6,7 @@ import 'package:stock_management/Model/rbac_models.dart';
 import 'package:stock_management/View/Components/app_button.dart';
 import 'package:stock_management/View/Components/app_screen_header.dart';
 
-/// The full permission catalog as a checklist, grouped by category —
-/// reached from a role card's "Manage permissions" button. Pre-checked
-/// from that role's current grants; Save replaces its whole permission
-/// set with whatever's checked. See [RolePermissionsController].
+/// The full permission catalog as a checklist, grouped by category.
 class RolePermissionsScreen extends GetView<RolePermissionsController> {
   const RolePermissionsScreen({super.key});
 
@@ -32,7 +29,7 @@ class RolePermissionsScreen extends GetView<RolePermissionsController> {
                         'selected': '${controller.selectedCodes.length}',
                         'total': '${grouped.values.fold(0, (sum, list) => sum + list.length)}',
                       }),
-                      style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.muted),
+                      style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.muted),
                     ),
                     const SizedBox(height: 14),
                     for (final entry in grouped.entries) ...[
@@ -97,7 +94,7 @@ class RolePermissionsScreen extends GetView<RolePermissionsController> {
             const SizedBox(width: 8),
             Text(
               category.isEmpty ? 'uncategorized_label'.tr : category,
-              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: AppColors.ink),
+              style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: AppColors.ink),
             ),
           ],
         ),
@@ -114,7 +111,7 @@ class RolePermissionsScreen extends GetView<RolePermissionsController> {
               for (var i = 0; i < items.length; i++) ...[
                 _permissionCheckRow(items[i]),
                 if (i != items.length - 1)
-                  const Divider(height: 1, thickness: 1, color: AppColors.border, indent: 14, endIndent: 14),
+                  Divider(height: 1, thickness: 1, color: AppColors.border, indent: 14, endIndent: 14),
               ],
             ],
           ),
@@ -134,9 +131,9 @@ class RolePermissionsScreen extends GetView<RolePermissionsController> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(item.code, style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700, color: AppColors.ink)),
+                  Text(item.code, style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700, color: AppColors.ink)),
                   const SizedBox(height: 3),
-                  Text(item.description, style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w500, color: AppColors.muted)),
+                  Text(item.description, style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w500, color: AppColors.muted)),
                 ],
               ),
             ),

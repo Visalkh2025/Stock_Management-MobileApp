@@ -1,5 +1,6 @@
 import 'package:stock_management/Config/api_config.dart';
 import 'package:stock_management/Model/lookup_models.dart';
+import 'package:stock_management/Model/purchase_order_models.dart';
 import 'package:stock_management/Services/api_client.dart';
 
 /// Lists behind the Add Product pickers (category, brand, supplier,
@@ -13,6 +14,15 @@ class MasterDataService {
   Future<List<LookupOption>> brands() => _fetchAll(ApiConfig.brands);
   Future<List<LookupOption>> suppliers() => _fetchAll(ApiConfig.suppliers);
   Future<List<LookupOption>> warehouses() => _fetchAll(ApiConfig.warehouses);
+
+  /// How full [warehouseCode] gets if [quantity] more units go in now.
+  Future<WarehouseCapacity> capacityCheck(String warehouseCode, double quantity) async {
+    final json = await _apiClient.get(
+      ApiConfig.warehouseCapacityCheck,
+      query: {'warehouseCode': warehouseCode, 'quantity': quantity},
+    );
+    return WarehouseCapacity.fromJson(Map<String, dynamic>.from(json as Map));
+  }
 
   Future<List<LookupOption>> _fetchAll(String path) async {
     final options = <LookupOption>[];

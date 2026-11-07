@@ -28,11 +28,7 @@ extension StockMovementDirectionX on StockMovementDirection {
   IconData get icon => isIn ? Icons.call_made_rounded : Icons.call_received_rounded;
 }
 
-/// Backs both the Stock In and Stock Out screens, reached from Home's
-/// header buttons (see HomeController.stockIn/stockOut). Someone with
-/// STOCK_ADJUST (ADMIN) changes the stock straight away; everyone else sends
-/// a STOCK_IN / STOCK_OUT request with an approval chain — the quantity only
-/// changes once the last approver says yes. Both paths share [StockFormController].
+/// Backs both the Stock In and Stock Out screens, reached from Home's header buttons (see HomeController.stockIn/stockOut).
 class StockMovementController extends StockFormController {
   // Read from Get.arguments (set by HomeController.stockIn/stockOut) instead
   // of a constructor param — same pattern RequestDetailController uses for
@@ -47,6 +43,9 @@ class StockMovementController extends StockFormController {
 
   @override
   bool get productFirst => true;
+
+  @override
+  LookupOption? incomingWarehouseOf(StockLine line) => direction.isIn ? line.warehouse.value : null;
 
   /// Stock In: any warehouse. Stock Out: only warehouses that hold the product.
   @override

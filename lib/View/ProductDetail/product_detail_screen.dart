@@ -10,6 +10,7 @@ import 'package:stock_management/View/Components/app_screen_header.dart';
 import 'package:stock_management/View/Components/product_image.dart';
 import 'package:stock_management/View/Components/product_variant_row.dart';
 import 'package:stock_management/View/Components/variant_price_summary.dart';
+import 'package:stock_management/View/ProductDetail/product_qr_card.dart';
 import 'package:stock_management/View/ProductDetail/stock_in_sheet.dart';
 
 class ProductDetailScreen extends GetView<ProductDetailController> {
@@ -36,7 +37,7 @@ class ProductDetailScreen extends GetView<ProductDetailController> {
         child: Wrap(
           children: [
             ListTile(
-              leading: const Icon(Icons.photo_camera_outlined, color: AppColors.brand700),
+              leading: Icon(Icons.photo_camera_outlined, color: AppColors.brand700),
               title: Text('action_take_photo'.tr),
               onTap: () {
                 Get.back();
@@ -44,7 +45,7 @@ class ProductDetailScreen extends GetView<ProductDetailController> {
               },
             ),
             ListTile(
-              leading: const Icon(Icons.photo_library_outlined, color: AppColors.brand700),
+              leading: Icon(Icons.photo_library_outlined, color: AppColors.brand700),
               title: Text('action_choose_from_gallery'.tr),
               onTap: () {
                 Get.back();
@@ -94,10 +95,21 @@ class ProductDetailScreen extends GetView<ProductDetailController> {
                   children: [
                     _infoCard,
                     const SizedBox(height: 18),
+                    ProductQrCard(product: _product),
+                    const SizedBox(height: 18),
                     _product.hasVariants ? _variantsCard : _simpleStockCard,
                     if (_product.warehouseStocks.isNotEmpty) ...[
                       const SizedBox(height: 18),
                       _warehouseStockCard,
+                    ],
+                    if (can(Perm.adjustmentView) && (_product.id?.isNotEmpty ?? false)) ...[
+                      const SizedBox(height: 20),
+                      AppButton(
+                        label: 'history_open_product'.tr,
+                        icon: Icons.history_rounded,
+                        variant: AppButtonVariant.secondary,
+                        onPressed: controller.openHistory,
+                      ),
                     ],
                     if (controller.canChangeImage) ...[
                       const SizedBox(height: 20),
@@ -163,6 +175,22 @@ class ProductDetailScreen extends GetView<ProductDetailController> {
                 ],
               ),
             ),
+            if (can(Perm.productEdit) && (_product.id?.isNotEmpty ?? false)) ...[
+              const SizedBox(width: 12),
+              Material(
+                color: AppScreenHeader.onHeaderSurface,
+                borderRadius: BorderRadius.circular(12),
+                child: InkWell(
+                  onTap: controller.openEdit,
+                  borderRadius: BorderRadius.circular(12),
+                  child: const SizedBox(
+                    width: 38,
+                    height: 38,
+                    child: Icon(Icons.edit_outlined, size: 18, color: AppScreenHeader.onHeader),
+                  ),
+                ),
+              ),
+            ],
           ],
         ),
       ],
@@ -190,25 +218,33 @@ class ProductDetailScreen extends GetView<ProductDetailController> {
                   children: [
                     Text(
                       _product.name,
-                      style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: AppColors.ink),
+                      style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: AppColors.ink),
                     ),
                     const SizedBox(height: 2),
                     Text(
                       [_product.brand, _product.category].where((v) => v != null && v.isNotEmpty).join(' • '),
-                      style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w500, color: AppColors.muted),
+                      style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w500, color: AppColors.muted),
                     ),
                   ],
                 ),
               ),
             ],
           ),
-          const Padding(
+          Padding(
             padding: EdgeInsets.symmetric(vertical: 14),
             child: Divider(height: 1, thickness: 1, color: AppColors.border),
           ),
           if (_product.code != null && _product.code!.isNotEmpty) _infoRow('field_product_code'.tr, _product.code!),
           _infoRow('field_sku'.tr, _product.sku),
           _infoRow('field_unit'.tr, _product.unit),
+          if (_product.minStock != null) _infoRow('field_min_stock'.tr, '${_product.minStock}'),
+          if (_product.maxStock != null)
+            _infoRow(
+              'field_max_stock'.tr,
+              _product.maxStock! == _product.maxStock!.roundToDouble()
+                  ? '${_product.maxStock!.round()}'
+                  : '${_product.maxStock}',
+            ),
           if (_product.supplier != null && _product.supplier!.isNotEmpty) _infoRow('field_supplier'.tr, _product.supplier!),
           if (!_product.hasVariants) ...[
             _infoRow('field_warehouse'.tr, _product.warehouse),
@@ -216,7 +252,7 @@ class ProductDetailScreen extends GetView<ProductDetailController> {
             if (_product.sellingPrice != null) _infoRow('field_sale_price'.tr, formatPrice(_product.sellingPrice)),
           ],
           if (_product.description != null && _product.description!.isNotEmpty) ...[
-            const Padding(
+            Padding(
               padding: EdgeInsets.symmetric(vertical: 10),
               child: Divider(height: 1, thickness: 1, color: AppColors.border),
             ),
@@ -224,7 +260,7 @@ class ProductDetailScreen extends GetView<ProductDetailController> {
               alignment: Alignment.centerLeft,
               child: Text(
                 _product.description!,
-                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: AppColors.muted, height: 1.4),
+                style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: AppColors.muted, height: 1.4),
               ),
             ),
           ],
@@ -246,7 +282,7 @@ class ProductDetailScreen extends GetView<ProductDetailController> {
         children: [
           Text(
             'label_stock_by_warehouse'.tr,
-            style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700, color: AppColors.textTertiary, letterSpacing: 0.4),
+            style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700, color: AppColors.textTertiary, letterSpacing: 0.4),
           ),
           const SizedBox(height: 6),
           for (final w in _product.warehouseStocks)
@@ -254,19 +290,23 @@ class ProductDetailScreen extends GetView<ProductDetailController> {
               padding: const EdgeInsets.symmetric(vertical: 6),
               child: Row(
                 children: [
-                  const Icon(Icons.store_outlined, size: 18, color: AppColors.textTertiary),
+                  Icon(Icons.store_outlined, size: 18, color: AppColors.textTertiary),
                   const SizedBox(width: 10),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(w.warehouseName, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.ink)),
+                        Text(w.warehouseName, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.ink)),
+                        Text(w.warehouseCode, style: TextStyle(fontSize: 11.5, color: AppColors.muted)),
                         if (w.location != null)
-                          Text(w.location!, style: const TextStyle(fontSize: 11.5, color: AppColors.muted)),
+                          Text(
+                            '${'label_location'.tr}: ${w.location}',
+                            style: TextStyle(fontSize: 11.5, color: AppColors.muted),
+                          ),
                       ],
                     ),
                   ),
-                  Text('${w.quantity}', style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: AppColors.ink)),
+                  Text('${w.quantity}', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: AppColors.ink)),
                 ],
               ),
             ),
@@ -281,8 +321,8 @@ class ProductDetailScreen extends GetView<ProductDetailController> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600, color: AppColors.muted)),
-          Text(value, style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700, color: AppColors.ink)),
+          Text(label, style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600, color: AppColors.muted)),
+          Text(value, style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700, color: AppColors.ink)),
         ],
       ),
     );
@@ -303,7 +343,7 @@ class ProductDetailScreen extends GetView<ProductDetailController> {
             padding: const EdgeInsets.only(top: 6, bottom: 2),
             child: Text(
               'label_variants_count'.trParams({'count': '${_product.variants.length}'}),
-              style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700, color: AppColors.textTertiary, letterSpacing: 0.4),
+              style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700, color: AppColors.textTertiary, letterSpacing: 0.4),
             ),
           ),
           for (final variant in _product.variants)
@@ -312,7 +352,7 @@ class ProductDetailScreen extends GetView<ProductDetailController> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  ProductVariantRow(data: variant, onTap: () => controller.openVariant(variant)),
+                  ProductVariantRow(data: variant, viewablePhoto: true, onTap: () => controller.openVariant(variant)),
                   VariantMetaRow(variant: variant),
                   VariantSubtotalLine(variant: variant),
                 ],
@@ -348,9 +388,9 @@ class ProductDetailScreen extends GetView<ProductDetailController> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text('field_quantity'.tr, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.muted)),
+                  Text('field_quantity'.tr, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.muted)),
                   const SizedBox(height: 2),
-                  Text('${_product.quantity}', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: AppColors.ink)),
+                  Text('${_product.quantity}', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: AppColors.ink)),
                 ],
               ),
               Container(
@@ -364,7 +404,7 @@ class ProductDetailScreen extends GetView<ProductDetailController> {
             ],
           ),
           if (_product.costPrice != null || _product.sellingPrice != null) ...[
-            const Padding(
+            Padding(
               padding: EdgeInsets.symmetric(vertical: 14),
               child: Divider(height: 1, thickness: 1, color: AppColors.border),
             ),
@@ -375,9 +415,9 @@ class ProductDetailScreen extends GetView<ProductDetailController> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Text('field_cost_price'.tr, style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w600, color: AppColors.muted)),
+                      Text('field_cost_price'.tr, style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w600, color: AppColors.muted)),
                       const SizedBox(height: 2),
-                      Text(formatPrice(_product.costPrice), style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: AppColors.ink)),
+                      Text(formatPrice(_product.costPrice), style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: AppColors.ink)),
                     ],
                   ),
                 ),
@@ -386,9 +426,9 @@ class ProductDetailScreen extends GetView<ProductDetailController> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Text('field_sale_price'.tr, style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w600, color: AppColors.muted)),
+                      Text('field_sale_price'.tr, style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w600, color: AppColors.muted)),
                       const SizedBox(height: 2),
-                      Text(formatPrice(_product.sellingPrice), style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: AppColors.success)),
+                      Text(formatPrice(_product.sellingPrice), style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: AppColors.success)),
                     ],
                   ),
                 ),

@@ -3,9 +3,9 @@ import 'package:get/get.dart';
 import 'package:stock_management/Config/theme/app_theme.dart';
 import 'package:stock_management/Controller/home_controller.dart';
 import 'package:stock_management/View/Components/app_main_scaffold.dart';
-import 'package:stock_management/View/Components/insight_card.dart';
 import 'package:stock_management/View/Components/quick_action_tile.dart';
-import 'package:stock_management/View/Components/stock_movement_chart.dart';
+import 'package:stock_management/View/Components/breakdown_card.dart';
+import 'package:stock_management/View/Components/insight_card.dart';
 import 'package:stock_management/View/Components/transaction_row.dart';
 import 'package:stock_management/View/Components/user_avatar.dart';
 
@@ -17,7 +17,11 @@ class HomeScreen extends GetView<HomeController> {
     final topInset = MediaQuery.paddingOf(context).top;
     return AppMainScaffold(
       tab: AppNavTab.home,
-      body: CustomScrollView(
+      body: RefreshIndicator(
+        onRefresh: controller.refreshAll,
+        edgeOffset: topInset + 80,
+        child: CustomScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
         slivers: [
           SliverPersistentHeader(
             pinned: true,
@@ -35,18 +39,19 @@ class HomeScreen extends GetView<HomeController> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _insightCards,
-                  const SizedBox(height: 16),
+                  _kpiGrid,
+                  const SizedBox(height: 18),
                   _quickActions,
+                  const SizedBox(height: 18),
+                  _breakdownCard,
                   const SizedBox(height: 16),
-                  _stockMovementCard,
-                  const SizedBox(height: 16),
-                  _recentTransactionsCard,
+                  if (controller.canSeeActivity) _recentActivityCard,
                 ],
               ),
             ),
           ),
         ],
+      ),
       ),
     );
   }
@@ -122,7 +127,7 @@ class HomeScreen extends GetView<HomeController> {
               const SizedBox(height: 4),
               Obx(
                 () => Text(
-                  controller.totalStockValue.value,
+                  controller.totalStockValue,
                   style: const TextStyle(
                     fontSize: 29,
                     fontWeight: FontWeight.w800,
@@ -132,12 +137,14 @@ class HomeScreen extends GetView<HomeController> {
                 ),
               ),
               const SizedBox(height: 2),
-              Text(
-                'skus_warehouses'.trParams({
-                  'sku': '${controller.skuCount}',
-                  'wh': '${controller.warehouseCount}',
-                }),
-                style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w500, color: AppColors.textTertiary),
+              Obx(
+                () => Text(
+                  'skus_warehouses'.trParams({
+                    'sku': '${controller.skuCount}',
+                    'wh': '${controller.warehouseCount}',
+                  }),
+                  style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w500, color: AppColors.textTertiary),
+                ),
               ),
             ],
           ),
@@ -226,16 +233,31 @@ class HomeScreen extends GetView<HomeController> {
     );
   }
 
-  Widget get _insightCards {
-    return SizedBox(
-      height: 74,
-      child: ListView.separated(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        itemCount: controller.insightCards.length,
-        separatorBuilder: (_, index) => const SizedBox(width: 10),
-        itemBuilder: (context, index) => InsightCard(data: controller.insightCards[index]),
-      ),
+  Widget get _kpiGrid {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Obx(() {
+        final kpis = controller.kpis;
+        return Column(
+          children: [
+            Row(
+              children: [
+                Expanded(child: KpiCard(data: kpis[0])),
+                const SizedBox(width: 10),
+                Expanded(child: KpiCard(data: kpis[1])),
+              ],
+            ),
+            const SizedBox(height: 10),
+            Row(
+              children: [
+                Expanded(child: KpiCard(data: kpis[2])),
+                const SizedBox(width: 10),
+                Expanded(child: KpiCard(data: kpis[3])),
+              ],
+            ),
+          ],
+        );
+      }),
     );
   }
 
@@ -247,7 +269,7 @@ class HomeScreen extends GetView<HomeController> {
         children: [
           Text(
             'quick_actions'.tr,
-            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: AppColors.ink),
+            style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: AppColors.ink),
           ),
           const SizedBox(height: 10),
           GridView.builder(
@@ -268,112 +290,25 @@ class HomeScreen extends GetView<HomeController> {
     );
   }
 
-  Widget get _stockMovementCard {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.cardBg,
-        border: Border.all(color: AppColors.border),
-        borderRadius: BorderRadius.circular(18),
-        boxShadow: [
-          BoxShadow(color: AppColors.brand900.withValues(alpha: 0.08), blurRadius: 20, offset: const Offset(0, 6)),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text('stock_movement'.tr, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: AppColors.ink)),
-              Text('last_7_days'.tr, style: const TextStyle(fontSize: 10.5, fontWeight: FontWeight.w600, color: AppColors.muted)),
-            ],
-          ),
-          const SizedBox(height: 10),
-          Row(
-            children: [
-              _legendDot(AppColors.brand600, 'legend_in'.tr),
-              const SizedBox(width: 14),
-              _legendDot(const Color(0xFF9CA3AF), 'legend_out'.tr),
-            ],
-          ),
-          const SizedBox(height: 10),
-          StockMovementChart(inSeries: controller.stockInSeries, outSeries: controller.stockOutSeries),
-          const SizedBox(height: 6),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              for (var i = 0; i < controller.weekdayLabels.length; i++)
-                Text(
-                  controller.weekdayLabels[i],
-                  style: TextStyle(
-                    fontSize: 9.5,
-                    fontWeight: i == controller.highlightedWeekdayIndex ? FontWeight.w700 : FontWeight.w600,
-                    color: i == controller.highlightedWeekdayIndex ? AppColors.brand700 : AppColors.muted,
-                  ),
-                ),
-            ],
-          ),
-        ],
+  Widget get _breakdownCard {
+    return Obx(
+      () => BreakdownCard(
+        slices: controller.chartSlices,
+        totalLabel: HomeController.groupDigits(controller.totalUnits),
+        mode: controller.chartMode.value,
+        onModeChanged: controller.setChartMode,
       ),
     );
   }
 
-  Widget _legendDot(Color color, String label) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Container(width: 8, height: 8, decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
-        const SizedBox(width: 6),
-        Text(label, style: const TextStyle(fontSize: 10.5, fontWeight: FontWeight.w600, color: AppColors.muted)),
-      ],
-    );
-  }
-
-  Widget get _recentTransactionsCard {
-    return Container(
-      margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
-      decoration: const BoxDecoration(
-        color: AppColors.brand50,
-        borderRadius: BorderRadius.only(topLeft: Radius.circular(22), topRight: Radius.circular(22)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'recent_transactions'.tr,
-                style: const TextStyle(fontSize: 14.5, fontWeight: FontWeight.w800, color: AppColors.ink),
-              ),
-              Container(
-                width: 32,
-                height: 32,
-                decoration: BoxDecoration(
-                  color: AppColors.cardBg,
-                  borderRadius: BorderRadius.circular(10),
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppColors.brand900.withValues(alpha: 0.08),
-                      blurRadius: 16,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: const Icon(Icons.tune_rounded, size: 15, color: AppColors.muted),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          for (var i = 0; i < controller.recentTransactions.length; i++) ...[
-            TransactionRow(data: controller.recentTransactions[i]),
-            if (i != controller.recentTransactions.length - 1) const SizedBox(height: 14),
-          ],
-          const SizedBox(height: 16),
-        ],
+  Widget get _recentActivityCard {
+    return Obx(
+      () => RecentActivityCard(
+        entries: controller.recentActivity.toList(),
+        isLoading: controller.activityLoading.value,
+        error: controller.activityError.value,
+        timeAgo: controller.timeAgo,
+        onSeeAll: controller.openStockHistory,
       ),
     );
   }

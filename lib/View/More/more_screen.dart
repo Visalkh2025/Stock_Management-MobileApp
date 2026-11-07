@@ -34,7 +34,7 @@ class MoreScreen extends GetView<MoreController> {
                       onTap: controller.openManage,
                       trailing: Text(
                         'manage_subtitle'.tr,
-                        style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: AppColors.textTertiary),
+                        style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: AppColors.textTertiary),
                       ),
                     ),
                     if (can(Perm.poView))
@@ -43,6 +43,19 @@ class MoreScreen extends GetView<MoreController> {
                       label: 'menu_purchase_orders'.tr,
                       onTap: controller.openPurchaseOrders,
                       trailing: _countBadge(controller.purchaseOrderCount),
+                    ),
+                    MoreMenuRow(
+                      icon: Icons.shopping_bag_outlined,
+                      label: 'menu_customer_orders'.tr,
+                      onTap: controller.openCustomerOrders,
+                      trailing: _chevron,
+                    ),
+                    if (can(Perm.adjustmentView))
+                    MoreMenuRow(
+                      icon: Icons.history_rounded,
+                      label: 'menu_stock_history'.tr,
+                      onTap: controller.openStockHistory,
+                      trailing: _chevron,
                     ),
                     if (can(Perm.reportView))
                     MoreMenuRow(
@@ -209,7 +222,7 @@ class MoreScreen extends GetView<MoreController> {
   Widget _sectionLabel(String text) {
     return Text(
       text.toUpperCase(),
-      style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700, color: AppColors.textTertiary, letterSpacing: 0.4),
+      style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700, color: AppColors.textTertiary, letterSpacing: 0.4),
     );
   }
 
@@ -229,7 +242,7 @@ class MoreScreen extends GetView<MoreController> {
           for (var i = 0; i < rows.length; i++) ...[
             rows[i],
             if (i != rows.length - 1)
-              const Divider(height: 1, thickness: 1, color: AppColors.border, indent: 14, endIndent: 14),
+              Divider(height: 1, thickness: 1, color: AppColors.border, indent: 14, endIndent: 14),
           ],
         ],
       ),
@@ -244,17 +257,14 @@ class MoreScreen extends GetView<MoreController> {
       alignment: Alignment.center,
       child: Text(
         '$count',
-        style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: AppColors.muted),
+        style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: AppColors.muted),
       ),
     );
   }
 
-  Widget get _chevron => const Icon(Icons.chevron_right_rounded, size: 18, color: AppColors.textTertiary);
+  Widget get _chevron => Icon(Icons.chevron_right_rounded, size: 18, color: AppColors.textTertiary);
 
   // Card-style row (matches the info/menu rows elsewhere) instead of a
-  // plain outlined button — a soft danger-tinted fill, a white icon chip,
-  // and a trailing chevron so it reads as one more tappable row, not an
-  // odd stand-alone outline.
   Widget get _signOutButton {
     return Material(
       color: AppColors.dangerBg,
@@ -274,15 +284,15 @@ class MoreScreen extends GetView<MoreController> {
               Container(
                 width: 36,
                 height: 36,
-                decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(11)),
+                decoration: BoxDecoration(color: AppColors.cardBg, borderRadius: BorderRadius.circular(11)),
                 alignment: Alignment.center,
-                child: const Icon(Icons.logout_rounded, size: 17, color: AppColors.danger),
+                child: Icon(Icons.logout_rounded, size: 17, color: AppColors.danger),
               ),
               const SizedBox(width: 12),
               Expanded(
                 child: Text(
                   'sign_out'.tr,
-                  style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: AppColors.danger),
+                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: AppColors.danger),
                 ),
               ),
               Icon(Icons.chevron_right_rounded, size: 18, color: AppColors.danger.withValues(alpha: 0.6)),

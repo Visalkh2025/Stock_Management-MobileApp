@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:stock_management/Controller/master_items_controller.dart';
+import 'package:stock_management/Config/routes/app_routes.dart';
 import 'package:get/get.dart';
 import 'package:stock_management/Config/permissions.dart';
 import 'package:stock_management/Config/theme/app_theme.dart';
@@ -7,6 +9,7 @@ import 'package:stock_management/Model/master_data_models.dart';
 import 'package:stock_management/View/Components/app_screen_header.dart';
 import 'package:stock_management/View/Components/master_data_parts.dart';
 import 'package:stock_management/View/Components/swipe_actions.dart';
+import 'package:stock_management/View/Components/warehouse_capacity_widgets.dart';
 
 /// Manage > Warehouses — flat searchable list, "+Add" in the header, and
 /// an edit/delete action on each row. Add/Edit both land on
@@ -109,9 +112,6 @@ class WarehousesScreen extends GetView<WarehouseController> {
       decoration: BoxDecoration(color: AppScreenHeader.onHeaderSurface, borderRadius: BorderRadius.circular(12)),
       alignment: Alignment.centerLeft,
       // prefixIcon pins the icon to the field's far-left edge, leaving a gap
-      // before the hint — IntrinsicWidth shrinks the icon+field group to its
-      // content instead, so the hint sits right next to the icon, same as
-      // the search bar on Team Members/Roles & Permissions.
       child: IntrinsicWidth(
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -141,7 +141,7 @@ class WarehousesScreen extends GetView<WarehouseController> {
     final subtitleParts = [
       if ((item.location ?? '').isNotEmpty) item.location!,
     ];
-    final card = Container(
+    final content = Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: AppColors.cardBg,
@@ -155,27 +155,45 @@ class WarehousesScreen extends GetView<WarehouseController> {
             height: 38,
             decoration: BoxDecoration(color: AppColors.brand50, borderRadius: BorderRadius.circular(12)),
             alignment: Alignment.center,
-            child: const Icon(Icons.warehouse_outlined, size: 17, color: AppColors.brand700),
+            child: Icon(Icons.warehouse_outlined, size: 17, color: AppColors.brand700),
           ),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(item.name, style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.w700, color: AppColors.ink)),
+                Text(item.name, style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w700, color: AppColors.ink)),
                 if (subtitleParts.isNotEmpty) ...[
                   const SizedBox(height: 2),
                   Text(
                     subtitleParts.join(' • '),
-                    style: const TextStyle(fontSize: 11.5, color: AppColors.muted),
+                    style: TextStyle(fontSize: 11.5, color: AppColors.muted),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
                 ],
+                const SizedBox(height: 10),
+                WarehouseUsageBar(
+                  used: item.usedQuantity,
+                  capacity: item.capacity,
+                  incoming: item.incomingQuantity,
+                ),
               ],
             ),
           ),
         ],
+      ),
+    );
+    final card = Material(
+      color: Colors.transparent,
+      borderRadius: BorderRadius.circular(16),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(16),
+        onTap: () => Get.toNamed(
+          Routes.masterItems,
+          arguments: MasterItemsArgs(kind: MasterKind.warehouse, code: item.code, name: item.name),
+        ),
+        child: content,
       ),
     );
     if (!can(Perm.warehouseManage)) return card;
@@ -191,23 +209,23 @@ class WarehousesScreen extends GetView<WarehouseController> {
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: Text('delete_warehouse_title'.tr, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: AppColors.ink)),
+        title: Text('delete_warehouse_title'.tr, style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: AppColors.ink)),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         content: Text(
           'delete_warehouse_message'.trParams({'name': item.name}),
-          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: AppColors.muted),
+          style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: AppColors.muted),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(),
-            child: Text('action_cancel'.tr, style: const TextStyle(color: AppColors.muted, fontWeight: FontWeight.w600)),
+            child: Text('action_cancel'.tr, style: TextStyle(color: AppColors.muted, fontWeight: FontWeight.w600)),
           ),
           TextButton(
             onPressed: () {
               Navigator.of(dialogContext).pop();
               controller.delete(item);
             },
-            child: Text('action_delete'.tr, style: const TextStyle(color: AppColors.danger, fontWeight: FontWeight.w700)),
+            child: Text('action_delete'.tr, style: TextStyle(color: AppColors.danger, fontWeight: FontWeight.w700)),
           ),
         ],
       ),
@@ -219,11 +237,11 @@ class WarehousesScreen extends GetView<WarehouseController> {
       padding: const EdgeInsets.only(top: 60),
       child: Column(
         children: [
-          const Icon(Icons.warehouse_outlined, size: 36, color: AppColors.textTertiary),
+          Icon(Icons.warehouse_outlined, size: 36, color: AppColors.textTertiary),
           const SizedBox(height: 10),
-          Text('empty_warehouses_title'.tr, style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.w700, color: AppColors.muted)),
+          Text('empty_warehouses_title'.tr, style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w700, color: AppColors.muted)),
           const SizedBox(height: 4),
-          Text('empty_warehouses_hint'.tr, style: const TextStyle(fontSize: 12, color: AppColors.textTertiary)),
+          Text('empty_warehouses_hint'.tr, style: TextStyle(fontSize: 12, color: AppColors.textTertiary)),
         ],
       ),
     );

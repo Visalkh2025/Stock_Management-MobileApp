@@ -6,6 +6,7 @@ import 'package:stock_management/Controller/stock_line.dart';
 import 'package:stock_management/Model/lookup_models.dart';
 import 'package:stock_management/Model/stock_models.dart';
 import 'package:stock_management/View/Components/product_image.dart';
+import 'package:stock_management/View/Components/app_snackbar.dart';
 
 /// "Product" field of a stock-movement line: tap to pick one of the existing
 /// products from a searchable list (name or SKU) instead of typing a SKU.
@@ -46,7 +47,7 @@ class StockProductPicker extends StatelessWidget {
             children: [
               Text(
                 'field_product'.tr,
-                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.muted),
+                style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.muted),
               ),
               const SizedBox(height: 6),
               InkWell(
@@ -65,14 +66,14 @@ class StockProductPicker extends StatelessWidget {
                         ProductImage(url: product.imageUrl, size: 36, radius: 10),
                         const SizedBox(width: 10),
                       ] else ...[
-                        const Icon(Icons.inventory_2_outlined, size: 20, color: AppColors.textTertiary),
+                        Icon(Icons.inventory_2_outlined, size: 20, color: AppColors.textTertiary),
                         const SizedBox(width: 10),
                       ],
                       Expanded(
                         child: product == null
                             ? Text(
                                 'hint_select_product'.tr,
-                                style: const TextStyle(fontSize: 13.5, color: AppColors.muted),
+                                style: TextStyle(fontSize: 13.5, color: AppColors.muted),
                               )
                             : Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -81,18 +82,18 @@ class StockProductPicker extends StatelessWidget {
                                     product.name,
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
-                                    style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.w700, color: AppColors.ink),
+                                    style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w700, color: AppColors.ink),
                                   ),
                                   Text(
                                     'SKU ${product.sku}',
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
-                                    style: const TextStyle(fontSize: 11.5, color: AppColors.muted),
+                                    style: TextStyle(fontSize: 11.5, color: AppColors.muted),
                                   ),
                                 ],
                               ),
                       ),
-                      const Icon(Icons.keyboard_arrow_down_rounded, size: 20, color: AppColors.textTertiary),
+                      Icon(Icons.keyboard_arrow_down_rounded, size: 20, color: AppColors.textTertiary),
                     ],
                   ),
                 ),
@@ -100,7 +101,7 @@ class StockProductPicker extends StatelessWidget {
               if (state.hasError)
                 Padding(
                   padding: const EdgeInsets.only(top: 6, left: 4),
-                  child: Text(state.errorText!, style: const TextStyle(fontSize: 11.5, color: AppColors.danger)),
+                  child: Text(state.errorText!, style: TextStyle(fontSize: 11.5, color: AppColors.danger)),
                 ),
             ],
           );
@@ -113,7 +114,7 @@ class StockProductPicker extends StatelessWidget {
     final where = warehouse();
     final needStock = onlyInStock();
     if (needStock && where == null) {
-      Get.snackbar('field_product'.tr, 'hint_select_warehouse_first'.tr, snackPosition: SnackPosition.BOTTOM);
+      AppSnackbar.warning('field_product'.tr, 'hint_select_warehouse_first'.tr);
       return;
     }
     showModalBottomSheet<void>(
@@ -200,7 +201,7 @@ class _ProductSheetState extends State<_ProductSheet> {
                 padding: const EdgeInsets.fromLTRB(20, 18, 20, 10),
                 child: Text(
                   'field_product'.tr,
-                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.ink),
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.ink),
                 ),
               ),
               Padding(
@@ -216,11 +217,11 @@ class _ProductSheetState extends State<_ProductSheet> {
                     fillColor: AppColors.pageBg,
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: AppColors.border),
+                      borderSide: BorderSide(color: AppColors.border),
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: AppColors.border),
+                      borderSide: BorderSide(color: AppColors.border),
                     ),
                   ),
                 ),
@@ -235,13 +236,13 @@ class _ProductSheetState extends State<_ProductSheet> {
                   }
                   if (items.isEmpty) {
                     return Center(
-                      child: Text('empty_products_found'.tr, style: const TextStyle(color: AppColors.muted)),
+                      child: Text('empty_products_found'.tr, style: TextStyle(color: AppColors.muted)),
                     );
                   }
                   return ListView.separated(
                     padding: const EdgeInsets.only(bottom: 12),
                     itemCount: items.length,
-                    separatorBuilder: (_, _) => const Divider(height: 1, color: AppColors.border),
+                    separatorBuilder: (_, _) => Divider(height: 1, color: AppColors.border),
                     itemBuilder: (_, i) {
                       final item = items[i];
                       final isSelected = selected != null && selected.code == item.code;

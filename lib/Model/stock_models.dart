@@ -78,11 +78,7 @@ String _warehouseSummary(List<WarehouseStockData> stocks) {
   return '${names.length} warehouses';
 }
 
-/// One variant row under a product that has [StockItemData.hasVariants] —
-/// e.g. "Black / 128GB" under "iPhone 15". Mirrors the `variants[]` +
-/// `stock[]` shape from the real product-create request payload: each
-/// variant carries its own price and — since a variant can be stocked in a
-/// different warehouse than its siblings — its own [warehouse].
+/// One variant row under a product that has [StockItemData.hasVariants] — e.g. "Black / 128GB" under "iPhone 15".
 class ProductVariantData {
   const ProductVariantData({
     required this.variantCode,
@@ -137,12 +133,7 @@ class ProductVariantData {
   final double? sellingPrice;
 }
 
-/// One product row in the Stock list. A product with [variants] renders as
-/// an expandable card on the Stock screen — [quantity]/[status]/[warehouse]
-/// then read as the *aggregate* across all variants rather than a
-/// standalone figure, and [costPrice]/[sellingPrice] are only meaningful
-/// when the product has no variants (pricing lives per-variant otherwise —
-/// same rule as the product-create request payload).
+/// One product row in the Stock list.
 class StockItemData {
   const StockItemData({
     required this.name,
@@ -165,7 +156,17 @@ class StockItemData {
     this.warehouseStocks = const [],
     this.matchedVariantCode,
     this.imageUrl,
+    this.categoryCode,
+    this.brandCode,
+    this.supplierCode,
+    this.maxStock,
   });
+
+  /// Master-data codes and the maximum stock, used by the Edit Product form.
+  final String? categoryCode;
+  final String? brandCode;
+  final String? supplierCode;
+  final double? maxStock;
 
   /// Product photo URL (Cloudinary) or null when none was uploaded.
   final String? imageUrl;
@@ -201,7 +202,12 @@ class StockItemData {
       }
     }
     String? nameOf(dynamic obj) => obj is Map ? obj['name']?.toString() : null;
+    String? codeOf(dynamic obj) => obj is Map ? obj['code']?.toString() : null;
     return StockItemData(
+      categoryCode: codeOf(json['category']),
+      brandCode: codeOf(json['brand']),
+      supplierCode: codeOf(json['supplier']),
+      maxStock: _toDoubleOrNull(json['maximumStock']),
       id: json['id']?.toString(),
       code: json['code']?.toString(),
       name: (json['name'] ?? '').toString(),

@@ -3,12 +3,6 @@ import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// App-wide language switch (English / Khmer), persisted across restarts.
-///
-/// Registered as a permanent singleton in `main()` *before* `runApp`, so
-/// [locale] already reflects the saved choice by the time [MyApp] builds
-/// its first frame — see main.dart. Every other screen reaches it through
-/// the same guarded-singleton getter pattern used across this app
-/// (e.g. `SettingsController._locale`).
 class LocaleController extends GetxController {
   static const _prefsKey = 'app_language_code';
 

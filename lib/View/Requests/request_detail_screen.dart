@@ -150,7 +150,7 @@ class RequestDetailScreen extends GetView<RequestDetailController> {
             alignment: Alignment.center,
             child: Text(
               _request.initials,
-              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.brand700),
+              style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.brand700),
             ),
           ),
           const SizedBox(width: 14),
@@ -161,12 +161,12 @@ class RequestDetailScreen extends GetView<RequestDetailController> {
               children: [
                 Text(
                   _request.requesterName,
-                  style: const TextStyle(fontSize: 14.5, fontWeight: FontWeight.w800, color: AppColors.ink),
+                  style: TextStyle(fontSize: 14.5, fontWeight: FontWeight.w800, color: AppColors.ink),
                 ),
                 const SizedBox(height: 2),
                 Text(
                   _request.submittedAgo,
-                  style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w500, color: AppColors.muted),
+                  style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w500, color: AppColors.muted),
                 ),
               ],
             ),
@@ -199,7 +199,7 @@ class RequestDetailScreen extends GetView<RequestDetailController> {
         children: [
           Text(
             'label_details'.tr,
-            style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700, color: AppColors.textTertiary, letterSpacing: 0.4),
+            style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700, color: AppColors.textTertiary, letterSpacing: 0.4),
           ),
           const SizedBox(height: 10),
           for (final segment in segments)
@@ -218,7 +218,7 @@ class RequestDetailScreen extends GetView<RequestDetailController> {
                   Expanded(
                     child: Text(
                       segment,
-                      style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.ink),
+                      style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.ink),
                     ),
                   ),
                 ],
@@ -275,18 +275,18 @@ class RequestDetailScreen extends GetView<RequestDetailController> {
         children: [
           Text(
             'label_product'.tr,
-            style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700, color: AppColors.textTertiary, letterSpacing: 0.4),
+            style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700, color: AppColors.textTertiary, letterSpacing: 0.4),
           ),
           const SizedBox(height: 10),
-          Text(product.name, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: AppColors.ink)),
+          Text(product.name, style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: AppColors.ink)),
           if ([product.brand, product.category].any((v) => v != null && v.isNotEmpty)) ...[
             const SizedBox(height: 2),
             Text(
               [product.brand, product.category].where((v) => v != null && v.isNotEmpty).join(' • '),
-              style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w500, color: AppColors.muted),
+              style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w500, color: AppColors.muted),
             ),
           ],
-          const Padding(
+          Padding(
             padding: EdgeInsets.symmetric(vertical: 12),
             child: Divider(height: 1, thickness: 1, color: AppColors.border),
           ),
@@ -298,7 +298,7 @@ class RequestDetailScreen extends GetView<RequestDetailController> {
             const SizedBox(height: 8),
             Text(
               product.description!,
-              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: AppColors.muted, height: 1.4),
+              style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: AppColors.muted, height: 1.4),
             ),
           ],
         ],
@@ -312,8 +312,8 @@ class RequestDetailScreen extends GetView<RequestDetailController> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600, color: AppColors.muted)),
-          Text(value, style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700, color: AppColors.ink)),
+          Text(label, style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600, color: AppColors.muted)),
+          Text(value, style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700, color: AppColors.ink)),
         ],
       ),
     );
@@ -334,7 +334,7 @@ class RequestDetailScreen extends GetView<RequestDetailController> {
             padding: const EdgeInsets.only(top: 6, bottom: 2),
             child: Text(
               'label_variants_count'.trParams({'count': '${product.variants.length}'}),
-              style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700, color: AppColors.textTertiary, letterSpacing: 0.4),
+              style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700, color: AppColors.textTertiary, letterSpacing: 0.4),
             ),
           ),
           for (final variant in product.variants)
@@ -351,7 +351,7 @@ class RequestDetailScreen extends GetView<RequestDetailController> {
                       padding: const EdgeInsets.only(top: 4),
                       child: Text(
                         '${stock.warehouseName.isEmpty ? stock.warehouseCode : stock.warehouseName} • ${stock.location}',
-                        style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w600, color: AppColors.textTertiary),
+                        style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w600, color: AppColors.textTertiary),
                       ),
                     ),
                 ],
@@ -387,9 +387,9 @@ class RequestDetailScreen extends GetView<RequestDetailController> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text('field_quantity'.tr, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.muted)),
+                  Text('field_quantity'.tr, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.muted)),
                   const SizedBox(height: 2),
-                  Text('${product.quantity}', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: AppColors.ink)),
+                  Text('${product.quantity}', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: AppColors.ink)),
                 ],
               ),
               Container(
@@ -408,7 +408,7 @@ class RequestDetailScreen extends GetView<RequestDetailController> {
               alignment: Alignment.centerLeft,
               child: Text(
                 'warehouse_prefix'.trParams({'wh': product.warehouse}),
-                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.muted),
+                style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.muted),
               ),
             ),
           ],
@@ -419,12 +419,12 @@ class RequestDetailScreen extends GetView<RequestDetailController> {
                 alignment: Alignment.centerLeft,
                 child: Text(
                   '${stock.warehouseName.isEmpty ? stock.warehouseCode : stock.warehouseName} • ${stock.location}',
-                  style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w600, color: AppColors.textTertiary),
+                  style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w600, color: AppColors.textTertiary),
                 ),
               ),
             ),
           if (product.costPrice != null || product.sellingPrice != null) ...[
-            const Padding(
+            Padding(
               padding: EdgeInsets.symmetric(vertical: 14),
               child: Divider(height: 1, thickness: 1, color: AppColors.border),
             ),
@@ -435,9 +435,9 @@ class RequestDetailScreen extends GetView<RequestDetailController> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Text('field_cost_price'.tr, style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w600, color: AppColors.muted)),
+                      Text('field_cost_price'.tr, style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w600, color: AppColors.muted)),
                       const SizedBox(height: 2),
-                      Text(formatPrice(product.costPrice), style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: AppColors.ink)),
+                      Text(formatPrice(product.costPrice), style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: AppColors.ink)),
                     ],
                   ),
                 ),
@@ -446,9 +446,9 @@ class RequestDetailScreen extends GetView<RequestDetailController> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Text('field_sale_price'.tr, style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w600, color: AppColors.muted)),
+                      Text('field_sale_price'.tr, style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w600, color: AppColors.muted)),
                       const SizedBox(height: 2),
-                      Text(formatPrice(product.sellingPrice), style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: AppColors.success)),
+                      Text(formatPrice(product.sellingPrice), style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: AppColors.success)),
                     ],
                   ),
                 ),
@@ -473,7 +473,7 @@ class RequestDetailScreen extends GetView<RequestDetailController> {
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: AppColors.danger.withAlpha(90)),
       ),
-      child: Text(message, style: const TextStyle(fontSize: 12.5, color: AppColors.danger)),
+      child: Text(message, style: TextStyle(fontSize: 12.5, color: AppColors.danger)),
     );
   }
 
@@ -491,10 +491,10 @@ class RequestDetailScreen extends GetView<RequestDetailController> {
         children: [
           Text(
             'label_remark'.tr,
-            style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700, color: AppColors.textTertiary, letterSpacing: 0.4),
+            style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700, color: AppColors.textTertiary, letterSpacing: 0.4),
           ),
           const SizedBox(height: 8),
-          Text(_request.remark!, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: AppColors.ink, height: 1.4)),
+          Text(_request.remark!, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: AppColors.ink, height: 1.4)),
         ],
       ),
     );
@@ -541,11 +541,11 @@ class RequestDetailScreen extends GetView<RequestDetailController> {
         children: [
           Text(
             'label_approval_workflow'.tr,
-            style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700, color: AppColors.textTertiary, letterSpacing: 0.4),
+            style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700, color: AppColors.textTertiary, letterSpacing: 0.4),
           ),
           const SizedBox(height: 12),
           for (var i = 0; i < approvers.length; i++) ...[
-            if (i > 0) const Padding(padding: EdgeInsets.symmetric(vertical: 10), child: Divider(height: 1, thickness: 1, color: AppColors.border)),
+            if (i > 0) Padding(padding: EdgeInsets.symmetric(vertical: 10), child: Divider(height: 1, thickness: 1, color: AppColors.border)),
             _approverRow(approvers[i]),
           ],
         ],
@@ -566,7 +566,7 @@ class RequestDetailScreen extends GetView<RequestDetailController> {
               alignment: Alignment.center,
               child: Text(
                 approver.initials,
-                style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: AppColors.brand700),
+                style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: AppColors.brand700),
               ),
             ),
             const SizedBox(width: 10),
@@ -577,13 +577,13 @@ class RequestDetailScreen extends GetView<RequestDetailController> {
                 children: [
                   Text(
                     approver.name.isEmpty ? approver.staffId : approver.name,
-                    style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.ink),
+                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.ink),
                     overflow: TextOverflow.ellipsis,
                   ),
                   const SizedBox(height: 1),
                   Text(
                     '${'label_step'.trParams({'n': '${approver.step}'})} • ${approver.role.label}',
-                    style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w500, color: AppColors.muted),
+                    style: TextStyle(fontSize: 11, fontWeight: FontWeight.w500, color: AppColors.muted),
                   ),
                 ],
               ),
@@ -605,7 +605,7 @@ class RequestDetailScreen extends GetView<RequestDetailController> {
             padding: const EdgeInsets.only(left: 44),
             child: Text(
               approver.remark!,
-              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: AppColors.muted, height: 1.35),
+              style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: AppColors.muted, height: 1.35),
             ),
           ),
         ],
@@ -627,12 +627,12 @@ class RequestDetailScreen extends GetView<RequestDetailController> {
       decoration: BoxDecoration(color: AppColors.warningBg, borderRadius: BorderRadius.circular(16)),
       child: Row(
         children: [
-          const Icon(Icons.hourglass_top_rounded, size: 20, color: AppColors.warning),
+          Icon(Icons.hourglass_top_rounded, size: 20, color: AppColors.warning),
           const SizedBox(width: 10),
           Expanded(
             child: Text(
               message,
-              style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700, color: AppColors.warning),
+              style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700, color: AppColors.warning),
             ),
           ),
         ],
@@ -669,10 +669,40 @@ class RequestDetailScreen extends GetView<RequestDetailController> {
             ],
           ),
           if (!approved && reason != null && reason.isNotEmpty) ...[
-            const SizedBox(height: 8),
-            Text(
-              'reject_reason_prefix'.trParams({'reason': reason}),
-              style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: _statusColor(_request.status)),
+            const SizedBox(height: 12),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
+              decoration: BoxDecoration(
+                color: Colors.white.withAlpha(190),
+                borderRadius: BorderRadius.circular(12),
+                border: Border(left: BorderSide(color: _statusColor(_request.status), width: 3.5)),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Icon(Icons.format_quote_rounded, size: 15, color: _statusColor(_request.status)),
+                      const SizedBox(width: 4),
+                      Text(
+                        'reject_reason_label'.tr.toUpperCase(),
+                        style: TextStyle(
+                          fontSize: 10.5,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: 0.6,
+                          color: _statusColor(_request.status),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    reason,
+                    style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w600, color: AppColors.ink, height: 1.4),
+                  ),
+                ],
+              ),
             ),
           ],
         ],
@@ -749,7 +779,7 @@ class RequestDetailScreen extends GetView<RequestDetailController> {
       builder: (dialogContext) => StatefulBuilder(
         builder: (context, setState) {
           return AlertDialog(
-            title: Text('confirm_reject_title'.tr, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: AppColors.ink)),
+            title: Text('confirm_reject_title'.tr, style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: AppColors.ink)),
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
             insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
             content: SizedBox(
@@ -760,17 +790,17 @@ class RequestDetailScreen extends GetView<RequestDetailController> {
                 children: [
                 Text(
                   'confirm_reject_message'.trParams({'id': _request.requestId}),
-                  style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: AppColors.muted),
+                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: AppColors.muted),
                 ),
                 const SizedBox(height: 12),
                 TextField(
                   controller: reasonController,
                   autofocus: true,
                   maxLines: 3,
-                  style: const TextStyle(fontSize: 13.5, color: AppColors.ink),
+                  style: TextStyle(fontSize: 13.5, color: AppColors.ink),
                   decoration: InputDecoration(
                     hintText: 'reject_reason_hint'.tr,
-                    hintStyle: const TextStyle(color: AppColors.muted, fontSize: 12.5),
+                    hintStyle: TextStyle(color: AppColors.muted, fontSize: 12.5),
                     errorText: errorText,
                     filled: true,
                     fillColor: AppColors.pageBg,
@@ -778,15 +808,15 @@ class RequestDetailScreen extends GetView<RequestDetailController> {
                     contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: AppColors.border),
+                      borderSide: BorderSide(color: AppColors.border),
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: AppColors.border),
+                      borderSide: BorderSide(color: AppColors.border),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: AppColors.muted, width: 1.4),
+                      borderSide: BorderSide(color: AppColors.muted, width: 1.4),
                     ),
                   ),
                 ),
@@ -796,7 +826,7 @@ class RequestDetailScreen extends GetView<RequestDetailController> {
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(dialogContext).pop(),
-                child: Text('action_cancel'.tr, style: const TextStyle(color: AppColors.muted, fontWeight: FontWeight.w600)),
+                child: Text('action_cancel'.tr, style: TextStyle(color: AppColors.muted, fontWeight: FontWeight.w600)),
               ),
               TextButton(
                 onPressed: () {
@@ -808,7 +838,7 @@ class RequestDetailScreen extends GetView<RequestDetailController> {
                   Navigator.of(dialogContext).pop();
                   controller.reject(reason);
                 },
-                child: Text('action_reject'.tr, style: const TextStyle(color: AppColors.danger, fontWeight: FontWeight.w700)),
+                child: Text('action_reject'.tr, style: TextStyle(color: AppColors.danger, fontWeight: FontWeight.w700)),
               ),
             ],
           );
@@ -828,14 +858,14 @@ class RequestDetailScreen extends GetView<RequestDetailController> {
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: Text(title, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: AppColors.ink)),
-        content: Text(message, style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.w500, color: AppColors.muted)),
+        title: Text(title, style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: AppColors.ink)),
+        content: Text(message, style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w500, color: AppColors.muted)),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(),
-            child: Text('action_cancel'.tr, style: const TextStyle(color: AppColors.muted, fontWeight: FontWeight.w600)),
+            child: Text('action_cancel'.tr, style: TextStyle(color: AppColors.muted, fontWeight: FontWeight.w600)),
           ),
           TextButton(
             onPressed: () {

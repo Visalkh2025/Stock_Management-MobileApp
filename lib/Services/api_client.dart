@@ -20,7 +20,7 @@ class ApiClient {
   }
 
   Future<Map<String, String>> _headers({required bool auth}) async {
-    final headers = {'Content-Type': 'application/json'};
+    final headers = {'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true'};
     if (auth) {
       final token = await _tokenStorage.getAccessToken();
       if (token != null && token.isNotEmpty) {
@@ -35,7 +35,6 @@ class ApiClient {
     return _send(() => _client.get(_uri(path, query), headers: headers));
   }
 
-  /// GET that returns the raw bytes (a file download such as an Excel export).
   Future<List<int>> getBytes(String path, {Map<String, dynamic>? query}) async {
     final headers = await _headers(auth: true);
     headers.remove('Content-Type');
@@ -62,8 +61,6 @@ class ApiClient {
     );
   }
 
-  /// Multipart POST (text [fields] + optional [files]) — used where the
-  /// backend takes an image upload alongside JSON-encoded fields.
   Future<dynamic> postMultipart(
     String path, {
     required Map<String, String> fields,
@@ -73,7 +70,8 @@ class ApiClient {
     return _send(() async {
       final request = http.MultipartRequest('POST', _uri(path))
         ..fields.addAll(fields)
-        ..files.addAll(files);
+        ..files.addAll(files)
+        ..headers['ngrok-skip-browser-warning'] = 'true';
       if (token != null && token.isNotEmpty) {
         request.headers['Authorization'] = 'Bearer $token';
       }

@@ -60,7 +60,7 @@ class PoSectionLabel extends StatelessWidget {
   Widget build(BuildContext context) {
     return Text(
       text.toUpperCase(),
-      style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700, color: AppColors.textTertiary, letterSpacing: 0.4),
+      style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700, color: AppColors.textTertiary, letterSpacing: 0.4),
     );
   }
 }
@@ -121,13 +121,13 @@ class PoInfoRow extends StatelessWidget {
         children: [
           SizedBox(
             width: 110,
-            child: Text(label, style: const TextStyle(fontSize: 12.5, color: AppColors.muted)),
+            child: Text(label, style: TextStyle(fontSize: 12.5, color: AppColors.muted)),
           ),
           Expanded(
             child: Text(
               value,
               textAlign: TextAlign.right,
-              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.ink),
+              style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.ink),
             ),
           ),
         ],
@@ -151,7 +151,7 @@ class PoErrorBanner extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: AppColors.danger.withAlpha(90)),
       ),
-      child: Text(message, style: const TextStyle(fontSize: 12.5, color: AppColors.danger)),
+      child: Text(message, style: TextStyle(fontSize: 12.5, color: AppColors.danger)),
     );
   }
 }

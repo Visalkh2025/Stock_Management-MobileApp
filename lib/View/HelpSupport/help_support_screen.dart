@@ -69,7 +69,7 @@ class HelpSupportScreen extends GetView<HelpSupportController> {
   Widget _sectionLabel(String text) {
     return Text(
       text.toUpperCase(),
-      style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700, color: AppColors.textTertiary, letterSpacing: 0.4),
+      style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700, color: AppColors.textTertiary, letterSpacing: 0.4),
     );
   }
 
@@ -87,7 +87,7 @@ class HelpSupportScreen extends GetView<HelpSupportController> {
             for (var i = 0; i < controller.faqs.length; i++) ...[
               _faqRow(controller.faqs[i]),
               if (i != controller.faqs.length - 1)
-                const Divider(height: 1, thickness: 1, color: AppColors.border, indent: 14, endIndent: 14),
+                Divider(height: 1, thickness: 1, color: AppColors.border, indent: 14, endIndent: 14),
             ],
           ],
         ),
@@ -109,14 +109,14 @@ class HelpSupportScreen extends GetView<HelpSupportController> {
                 Expanded(
                   child: Text(
                     faq.question.tr,
-                    style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.ink),
+                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.ink),
                   ),
                 ),
                 const SizedBox(width: 8),
                 AnimatedRotation(
                   turns: isExpanded ? 0.5 : 0,
                   duration: const Duration(milliseconds: 180),
-                  child: const Icon(Icons.expand_more_rounded, size: 20, color: AppColors.textTertiary),
+                  child: Icon(Icons.expand_more_rounded, size: 20, color: AppColors.textTertiary),
                 ),
               ],
             ),
@@ -129,7 +129,7 @@ class HelpSupportScreen extends GetView<HelpSupportController> {
                       padding: const EdgeInsets.only(top: 8),
                       child: Text(
                         faq.answer.tr,
-                        style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: AppColors.muted, height: 1.4),
+                        style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: AppColors.muted, height: 1.4),
                       ),
                     )
                   : const SizedBox(width: double.infinity),
@@ -156,7 +156,7 @@ class HelpSupportScreen extends GetView<HelpSupportController> {
             value: 'support@stockflow.com',
             onTap: () => controller.copyToClipboard('field_email'.tr, 'support@stockflow.com'),
           ),
-          const Divider(height: 1, thickness: 1, color: AppColors.border, indent: 14, endIndent: 14),
+          Divider(height: 1, thickness: 1, color: AppColors.border, indent: 14, endIndent: 14),
           _contactRow(
             icon: Icons.call_outlined,
             label: 'label_call_support'.tr,
@@ -192,13 +192,13 @@ class HelpSupportScreen extends GetView<HelpSupportController> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(label, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.ink)),
+                  Text(label, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.ink)),
                   const SizedBox(height: 1),
-                  Text(value, style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w500, color: AppColors.muted)),
+                  Text(value, style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w500, color: AppColors.muted)),
                 ],
               ),
             ),
-            const Icon(Icons.copy_rounded, size: 15, color: AppColors.textTertiary),
+            Icon(Icons.copy_rounded, size: 15, color: AppColors.textTertiary),
           ],
         ),
       ),

@@ -8,11 +8,7 @@ import 'package:stock_management/View/Components/stock_form_parts.dart';
 import 'package:stock_management/View/Components/stock_lines_section.dart';
 import 'package:stock_management/View/Components/app_text_field.dart';
 
-/// Reached from Home's "Adjust" quick action (see Routes.adjust,
-/// AdjustBinding). Extracted out of the generic New Request form the same
-/// way Stock In/Out were — this flow carries a direction toggle and a live
-/// Stock impact preview the other request types don't need. See
-/// [AdjustController].
+/// Reached from Home's "Adjust" quick action (see Routes.adjust, AdjustBinding).
 class AdjustScreen extends GetView<AdjustController> {
   const AdjustScreen({super.key});
 
@@ -81,7 +77,7 @@ class AdjustScreen extends GetView<AdjustController> {
   Widget _sectionLabel(String text) {
     return Text(
       text.toUpperCase(),
-      style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700, color: AppColors.textTertiary, letterSpacing: 0.4),
+      style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700, color: AppColors.textTertiary, letterSpacing: 0.4),
     );
   }
 

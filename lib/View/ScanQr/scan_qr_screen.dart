@@ -6,6 +6,8 @@ import 'package:stock_management/Config/permissions.dart';
 import 'package:stock_management/Config/routes/app_routes.dart';
 import 'package:stock_management/Config/theme/app_theme.dart';
 import 'package:stock_management/Controller/scan_qr_controller.dart';
+import 'package:stock_management/Controller/stock_form_controller.dart';
+import 'package:stock_management/Controller/stock_movement_controller.dart';
 import 'package:stock_management/Model/stock_models.dart';
 import 'package:stock_management/Services/api_exception.dart';
 import 'package:stock_management/View/Components/app_button.dart';
@@ -56,9 +58,6 @@ class ScanQrScreen extends GetView<ScanQrController> {
   void _resolve(String code) {
     if (!controller.beginHandling()) return;
     // Two-stage capture animation before acting on the result: the QR
-    // badge jumps into the center first (beginHandling() just set
-    // controller.captured), then confirmMatch() swaps it for the check
-    // tick a beat later — see ScanQrScreen._viewfinder for both stages.
     Future.delayed(const Duration(milliseconds: 420), () async {
       controller.confirmMatch();
       // Look the code up while the check tick plays.
@@ -75,7 +74,11 @@ class ScanQrScreen extends GetView<ScanQrController> {
       }
       final match = result.product;
       if (match != null) {
-        Get.offNamed(Routes.productDetail, arguments: match);
+        Get.bottomSheet(
+          _ProductActionsSheet(product: match, onPick: (open) => _openAction(match, open)),
+          isScrollControlled: true,
+          backgroundColor: Colors.transparent,
+        ).whenComplete(controller.resumeScanning);
         return;
       }
       Get.bottomSheet(
@@ -93,6 +96,28 @@ class ScanQrScreen extends GetView<ScanQrController> {
         backgroundColor: Colors.transparent,
       ).whenComplete(controller.resumeScanning);
     });
+  }
+
+  /// Closes the actions sheet, then opens the chosen screen in place of the
+  /// scanner. Stock forms get the scanned product as their first line.
+  void _openAction(StockItemData product, _ScanAction action) {
+    Get.back();
+    switch (action) {
+      case _ScanAction.detail:
+        Get.offNamed(Routes.productDetail, arguments: product);
+      case _ScanAction.stockIn:
+        StockFormController.pendingProduct = product;
+        Get.offNamed(Routes.stockIn, arguments: StockMovementDirection.stockIn);
+      case _ScanAction.stockOut:
+        StockFormController.pendingProduct = product;
+        Get.offNamed(Routes.stockOut, arguments: StockMovementDirection.stockOut);
+      case _ScanAction.transfer:
+        StockFormController.pendingProduct = product;
+        Get.offNamed(Routes.transfer);
+      case _ScanAction.adjust:
+        StockFormController.pendingProduct = product;
+        Get.offNamed(Routes.adjust);
+    }
   }
 
   Future<_LookupResult> _lookup(String code) async {
@@ -210,11 +235,6 @@ class ScanQrScreen extends GetView<ScanQrController> {
                   Positioned(bottom: 0, left: 0, child: _cornerMark(top: false, left: true, color: frameColor)),
                   Positioned(bottom: 0, right: 0, child: _cornerMark(top: false, left: false, color: frameColor)),
                   // "Caught it" — a QR badge jumps into the center the
-                  // instant a code is read (elasticOut gives it the little
-                  // overshoot/bounce), then swaps for a green check tick a
-                  // beat later once confirmMatch() flips showTick — timed
-                  // with _resolve()'s two-stage delay before it navigates
-                  // or shows the not-found sheet.
                   Center(
                     child: AnimatedScale(
                       scale: captured ? 1 : 0.2,
@@ -345,15 +365,10 @@ class _ManualEntrySheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // Get.bottomSheet's route already wraps every sheet in
-    // Padding(bottom: viewInsets.bottom) to dodge the keyboard — adding it
-    // again here doubled the keyboard inset, leaving a keyboard-height gap
-    // below the card *and* pushing the card itself that much closer to the
-    // status bar. SingleChildScrollView alone still hugs its content and
-    // still protects small screens from overflowing when the keyboard is up.
     return SingleChildScrollView(
       child: Container(
         padding: const EdgeInsets.fromLTRB(20, 20, 20, 28),
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           color: AppColors.cardBg,
           borderRadius: BorderRadius.only(topLeft: Radius.circular(24), topRight: Radius.circular(24)),
         ),
@@ -371,14 +386,14 @@ class _ManualEntrySheet extends StatelessWidget {
             ),
             Text(
               'action_enter_code_manually'.tr,
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.ink),
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.ink),
             ),
             const SizedBox(height: 14),
             AppTextField(
               label: 'field_sku_or_barcode'.tr,
               controller: codeController,
               hintText: 'hint_sku_barcode_example'.tr,
-              prefixIcon: const Icon(Icons.qr_code_2_rounded, size: 18, color: AppColors.muted),
+              prefixIcon: Icon(Icons.qr_code_2_rounded, size: 18, color: AppColors.muted),
             ),
             const SizedBox(height: 18),
             AppButton(label: 'action_look_up'.tr, onPressed: onSubmit),
@@ -404,7 +419,7 @@ class _NotFoundSheet extends StatelessWidget {
     return SingleChildScrollView(
       child: Container(
         padding: const EdgeInsets.fromLTRB(20, 24, 20, 28),
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           color: AppColors.cardBg,
           borderRadius: BorderRadius.only(topLeft: Radius.circular(24), topRight: Radius.circular(24)),
         ),
@@ -414,20 +429,20 @@ class _NotFoundSheet extends StatelessWidget {
             Container(
               width: 56,
               height: 56,
-              decoration: const BoxDecoration(color: AppColors.warningBg, shape: BoxShape.circle),
+              decoration: BoxDecoration(color: AppColors.warningBg, shape: BoxShape.circle),
               alignment: Alignment.center,
-              child: const Icon(Icons.search_off_rounded, size: 26, color: AppColors.warning),
+              child: Icon(Icons.search_off_rounded, size: 26, color: AppColors.warning),
             ),
             const SizedBox(height: 16),
             Text(
               'not_found_title'.tr,
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.ink),
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.ink),
             ),
             const SizedBox(height: 6),
             Text(
               onAddNew == null ? 'scan_not_found_no_permission'.tr : 'not_found_message'.trParams({'code': code}),
               textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: 13, color: AppColors.muted),
+              style: TextStyle(fontSize: 13, color: AppColors.muted),
             ),
             const SizedBox(height: 20),
             if (onAddNew != null) ...[
@@ -435,6 +450,102 @@ class _NotFoundSheet extends StatelessWidget {
               const SizedBox(height: 10),
             ],
             AppButton(label: 'action_scan_again'.tr, variant: AppButtonVariant.secondary, onPressed: Get.back),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+enum _ScanAction { detail, stockIn, stockOut, transfer, adjust }
+
+/// What to do with the scanned product: open it, or start a stock movement
+/// with it already filled in (quantity is still typed by hand).
+class _ProductActionsSheet extends StatelessWidget {
+  const _ProductActionsSheet({required this.product, required this.onPick});
+
+  final StockItemData product;
+  final void Function(_ScanAction action) onPick;
+
+  @override
+  Widget build(BuildContext context) {
+    final canAdjust = can(Perm.stockAdjust) || can(Perm.requestCreate);
+    return SingleChildScrollView(
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(20, 24, 20, 28),
+        decoration: BoxDecoration(
+          color: AppColors.cardBg,
+          borderRadius: BorderRadius.only(topLeft: Radius.circular(24), topRight: Radius.circular(24)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              product.name,
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.ink),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              [product.sku, '${'field_quantity'.tr}: ${product.quantity}'].where((e) => e.isNotEmpty).join(' • '),
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 12.5, color: AppColors.muted),
+            ),
+            const SizedBox(height: 18),
+            AppButton(
+              label: 'scan_action_view'.tr,
+              icon: Icons.visibility_outlined,
+              onPressed: () => onPick(_ScanAction.detail),
+            ),
+            const SizedBox(height: 10),
+            Row(
+              children: [
+                Expanded(
+                  child: AppButton(
+                    label: 'stock_in'.tr,
+                    icon: Icons.call_made_rounded,
+                    variant: AppButtonVariant.secondary,
+                    onPressed: () => onPick(_ScanAction.stockIn),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: AppButton(
+                    label: 'stock_out'.tr,
+                    icon: Icons.call_received_rounded,
+                    variant: AppButtonVariant.secondary,
+                    onPressed: () => onPick(_ScanAction.stockOut),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            Row(
+              children: [
+                Expanded(
+                  child: AppButton(
+                    label: 'qa_transfer'.tr,
+                    icon: Icons.swap_horiz_rounded,
+                    variant: AppButtonVariant.secondary,
+                    onPressed: () => onPick(_ScanAction.transfer),
+                  ),
+                ),
+                if (canAdjust) ...[
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: AppButton(
+                      label: 'qa_adjust'.tr,
+                      icon: Icons.tune_rounded,
+                      variant: AppButtonVariant.secondary,
+                      onPressed: () => onPick(_ScanAction.adjust),
+                    ),
+                  ),
+                ],
+              ],
+            ),
+            const SizedBox(height: 4),
+            AppButton(label: 'action_scan_again'.tr, variant: AppButtonVariant.text, onPressed: Get.back),
           ],
         ),
       ),
@@ -461,16 +572,16 @@ class _MessageSheet extends StatelessWidget {
     return SingleChildScrollView(
       child: Container(
         padding: const EdgeInsets.fromLTRB(20, 24, 20, 28),
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           color: AppColors.cardBg,
           borderRadius: BorderRadius.only(topLeft: Radius.circular(24), topRight: Radius.circular(24)),
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.cloud_off_rounded, size: 32, color: AppColors.muted),
+            Icon(Icons.cloud_off_rounded, size: 32, color: AppColors.muted),
             const SizedBox(height: 12),
-            Text(message, textAlign: TextAlign.center, style: const TextStyle(fontSize: 13, color: AppColors.muted)),
+            Text(message, textAlign: TextAlign.center, style: TextStyle(fontSize: 13, color: AppColors.muted)),
             const SizedBox(height: 20),
             AppButton(label: 'action_scan_again'.tr, onPressed: Get.back),
           ],
@@ -480,10 +591,7 @@ class _MessageSheet extends StatelessWidget {
   }
 }
 
-/// The horizontal line that sweeps up and down inside the viewfinder while
-/// idle, signaling "still looking for a code". Kept as its own tiny
-/// StatefulWidget (its own AnimationController/ticker) so the rest of the
-/// screen can stay a plain [GetView] — see [ScanQrScreen._viewfinder].
+/// The horizontal line that sweeps up and down inside the viewfinder while idle, signaling "still looking for a code".
 class _ScanLine extends StatefulWidget {
   const _ScanLine({required this.size});
 

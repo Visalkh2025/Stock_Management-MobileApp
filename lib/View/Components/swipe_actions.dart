@@ -1,16 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:stock_management/Config/theme/app_theme.dart';
 
-/// Wraps a row/card so a left swipe reveals Edit + Delete buttons behind it
-/// (same "swipe to reveal" pattern as iOS Mail) instead of showing those
-/// icons inline all the time. Used by every list row that has edit/delete
-/// actions — Team Members, Roles, Permissions — so they all behave the same
-/// way instead of each screen inventing its own icon layout.
-///
-/// [child] is whatever the row normally looks like (with no edit/delete
-/// icons of its own). [borderRadius] should match the card's own corner
-/// radius so the revealed action buttons line up with it; leave it zero for
-/// a flat list row that has no rounding of its own (e.g. a divided list).
+/// Wraps a row/card so a left swipe reveals Edit + Delete buttons behind it (same "swipe to reveal" pattern as iOS Mail) instead of showing those icons inline all the time.
 class AppSwipeActions extends StatefulWidget {
   const AppSwipeActions({
     super.key,

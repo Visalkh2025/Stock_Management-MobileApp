@@ -83,7 +83,7 @@ class TeamMemberFormScreen extends GetView<TeamMemberFormController> {
   Widget _sectionLabel(String text) {
     return Text(
       text.toUpperCase(),
-      style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700, color: AppColors.textTertiary, letterSpacing: 0.4),
+      style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700, color: AppColors.textTertiary, letterSpacing: 0.4),
     );
   }
 
@@ -143,7 +143,7 @@ class TeamMemberFormScreen extends GetView<TeamMemberFormController> {
       if (roles.isEmpty) {
         return Text(
           'no_roles_yet_hint'.tr,
-          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.textTertiary),
+          style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.textTertiary),
         );
       }
       return Wrap(

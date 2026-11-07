@@ -44,6 +44,7 @@ class ProductService {
     List<Map<String, dynamic>> variants = const [],
     required List<Map<String, dynamic>> stock,
     File? image,
+    Map<String, File> variantImages = const {},
   }) async {
     final fields = <String, String>{
       'product': jsonEncode(product),
@@ -54,13 +55,28 @@ class ProductService {
     if (image != null) {
       files.add(await imageMultipart('image', image));
     }
+    for (final entry in variantImages.entries) {
+      files.add(await imageMultipart('variantImage[${entry.key}]', entry.value));
+    }
     await _apiClient.postMultipart(ApiConfig.products, fields: fields, files: files);
+  }
+
+  /// `PATCH /products/:id` (needs PRODUCT_EDIT): changes the product's
+  /// details and its existing variants. Stock quantities are not part of it.
+  Future<void> updateProduct(String productId, Map<String, dynamic> body) async {
+    await _apiClient.patch(ApiConfig.productById(productId), body: body);
   }
 
   /// `POST /products/:id/image` (needs PRODUCT_UPDATE): replaces the photo.
   Future<void> updateImage(String productId, File image) async {
     final file = await imageMultipart('image', image);
     await _apiClient.postMultipart(ApiConfig.productImage(productId), fields: const {}, files: [file]);
+  }
+
+  /// `POST /product-variants/:id/image` (needs PRODUCT_IMAGE): replaces one variant's photo.
+  Future<void> updateVariantImage(String variantId, File image) async {
+    final file = await imageMultipart('image', image);
+    await _apiClient.postMultipart(ApiConfig.productVariantImage(variantId), fields: const {}, files: [file]);
   }
 
   /// `POST /products/import` (needs PRODUCT_CREATE): creates every product in
@@ -103,6 +119,31 @@ class ProductService {
         'quantity': quantity,
         'reason': reason,
         if (location != null && location.trim().isNotEmpty) 'location': location.trim(),
+      },
+    );
+  }
+
+  /// `POST /stock-adjustments/transfer` (needs STOCK_TRANSFER): moves stock
+  /// between two warehouses straight away, no approval.
+  Future<void> transferStock({
+    required String productCode,
+    String? variantCode,
+    required String fromWarehouseCode,
+    required String toWarehouseCode,
+    required int quantity,
+  }) async {
+    await _apiClient.post(
+      ApiConfig.stockTransfer,
+      body: {
+        'transfers': [
+          {
+            'productCode': productCode,
+            if (variantCode != null && variantCode.isNotEmpty) 'variantCode': variantCode,
+            'fromWarehouseCode': fromWarehouseCode,
+            'toWarehouseCode': toWarehouseCode,
+            'quantity': quantity,
+          },
+        ],
       },
     );
   }

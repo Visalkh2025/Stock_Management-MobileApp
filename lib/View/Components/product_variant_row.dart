@@ -1,14 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:stock_management/Config/theme/app_theme.dart';
 import 'package:stock_management/Model/stock_models.dart';
+import 'package:stock_management/View/Components/product_image.dart';
 
 /// One variant line shown inside an expanded [StockItemCard] — variant
 /// name, its own SKU, quantity, and a compact status badge.
 class ProductVariantRow extends StatelessWidget {
-  const ProductVariantRow({super.key, required this.data, this.onTap});
+  const ProductVariantRow({super.key, required this.data, this.onTap, this.selected = false, this.viewablePhoto = false});
 
   final ProductVariantData data;
   final VoidCallback? onTap;
+
+  /// Highlights the row (the Stock screen shows the selected variant's photo).
+  final bool selected;
+
+  /// Tapping the photo opens it full screen (Product Detail).
+  final bool viewablePhoto;
 
   Color get _statusColor {
     switch (data.status) {
@@ -36,15 +43,18 @@ class ProductVariantRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return InkWell(
       onTap: onTap,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 8),
+      borderRadius: BorderRadius.circular(10),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 6),
+        decoration: BoxDecoration(
+          color: selected ? AppColors.brand700.withAlpha(18) : Colors.transparent,
+          borderRadius: BorderRadius.circular(10),
+        ),
         child: Row(
           children: [
-            Container(
-              width: 6,
-              height: 6,
-              margin: const EdgeInsets.only(right: 10),
-              decoration: const BoxDecoration(color: AppColors.brand300, shape: BoxShape.circle),
+            Padding(
+              padding: const EdgeInsets.only(right: 10),
+              child: ProductImage(url: data.imageUrl, size: 36, radius: 9, iconSize: 18, viewable: viewablePhoto, title: data.variantName),
             ),
             Expanded(
               child: Column(
@@ -53,13 +63,13 @@ class ProductVariantRow extends StatelessWidget {
                 children: [
                   Text(
                     data.variantName,
-                    style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700, color: AppColors.ink),
+                    style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700, color: AppColors.ink),
                     overflow: TextOverflow.ellipsis,
                   ),
                   const SizedBox(height: 1),
                   Text(
                     data.variantCode.isNotEmpty ? '${data.sku} • ${data.variantCode}' : data.sku,
-                    style: const TextStyle(fontSize: 10.5, fontWeight: FontWeight.w500, color: AppColors.muted),
+                    style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.w500, color: AppColors.muted),
                     overflow: TextOverflow.ellipsis,
                   ),
                 ],
@@ -72,7 +82,7 @@ class ProductVariantRow extends StatelessWidget {
               children: [
                 Text(
                   '${data.quantity}',
-                  style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w800, color: AppColors.ink),
+                  style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w800, color: AppColors.ink),
                 ),
                 const SizedBox(height: 2),
                 Container(

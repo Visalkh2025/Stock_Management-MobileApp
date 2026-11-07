@@ -35,6 +35,9 @@ class AdjustController extends StockFormController {
   @override
   bool get productFirst => true;
 
+  @override
+  LookupOption? incomingWarehouseOf(StockLine line) => line.increase.value ? line.warehouse.value : null;
+
   /// Only warehouses that already hold the product can be adjusted.
   @override
   List<LookupOption> warehouseOptionsFor(StockLine line) {

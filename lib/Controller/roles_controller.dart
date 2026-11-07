@@ -3,11 +3,7 @@ import 'package:stock_management/Config/routes/app_routes.dart';
 import 'package:stock_management/Controller/permissions_controller.dart';
 import 'package:stock_management/Model/rbac_models.dart';
 
-/// Security roles behind More > Roles & Permissions' "Roles" tab. Each
-/// role holds a set of permission codes from [PermissionsController]'s
-/// catalog. Team members reference a role by name (see
-/// TeamMembersController) instead of a fixed enum, so a role added here
-/// is immediately selectable on the Team Member form.
+/// Security roles behind More > Roles & Permissions' "Roles" tab.
 class RolesController extends GetxController {
   final _items = <RoleData>[
     const RoleData(
@@ -65,10 +61,7 @@ class RolesController extends GetxController {
 
   void delete(RoleData item) => _items.remove(item);
 
-  /// Quick-remove a single permission chip straight from the role card —
-  /// the "x" on each chip, same tap-to-remove shape as the permission
-  /// chips already used elsewhere. [RolePermissionsScreen]'s checklist is
-  /// for adding/removing in bulk; this is for the one-tap case.
+  /// Quick-remove a single permission chip straight from the role card.
   void removePermission(RoleData role, String code) {
     final index = _items.indexOf(role);
     if (index == -1) return;
@@ -102,9 +95,6 @@ class RolesController extends GetxController {
   }
 
   /// A role's chips need each code's full [PermissionData] (for the
-  /// description tooltip/consistency) — falls back to a bare code-only
-  /// stand-in if the catalog entry was somehow deleted without going
-  /// through [removePermissionFromAllRoles] (defensive, shouldn't happen).
   PermissionData permissionFor(String code) {
     for (final permission in permissions.allItems) {
       if (permission.code == code) return permission;

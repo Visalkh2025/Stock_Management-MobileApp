@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:stock_management/Config/routes/app_routes.dart';
 import 'package:stock_management/Services/api_exception.dart';
 import 'package:stock_management/Services/auth_service.dart';
+import 'package:stock_management/View/Components/app_snackbar.dart';
 
 /// Forces a password change right after sign-in, and doubles as the
 /// "set new password" step at the end of the forgot-password flow.
@@ -30,9 +31,6 @@ class NewPasswordController extends GetxController {
   final AuthService _authService = AuthService();
 
   /// The password the user just signed in with (their temporary password).
-  /// Set by [LoginController] via [setCurrentPassword] right before it
-  /// navigates here, since `POST /auth/change-password` needs it
-  /// alongside the new password.
   String? _currentPassword;
 
   void setCurrentPassword(String password) {
@@ -80,10 +78,9 @@ class NewPasswordController extends GetxController {
       );
       Get.offAllNamed(Routes.home);
     } on ApiException catch (e) {
-      Get.snackbar(
+      AppSnackbar.error(
         'change_password_failed_title'.tr,
         e.message,
-        snackPosition: SnackPosition.BOTTOM,
       );
     } finally {
       isLoading.value = false;

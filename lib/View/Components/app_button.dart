@@ -5,10 +5,7 @@ import 'package:stock_management/Config/theme/app_theme.dart';
 /// corner radius, and label weight — only fill/border/text color differ.
 enum AppButtonVariant { primary, secondary, text }
 
-/// One button for the whole app. Covers "Sign In" (primary), "Cancel" /
-/// "Change password" (secondary/outlined), and inline actions like
-/// "Enable 2FA" or "Revoke" (text) — pick a variant instead of writing a
-/// new button widget per screen.
+/// One button for the whole app.
 class AppButton extends StatelessWidget {
   const AppButton({
     super.key,
@@ -66,7 +63,7 @@ class AppButton extends StatelessWidget {
           style: OutlinedButton.styleFrom(
             foregroundColor: AppColors.ink,
             backgroundColor: AppColors.cardBg,
-            side: const BorderSide(color: AppColors.border),
+            side: BorderSide(color: AppColors.border),
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           ),
           child: child,

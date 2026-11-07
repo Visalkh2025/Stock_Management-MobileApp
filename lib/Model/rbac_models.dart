@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:stock_management/Config/theme/app_theme.dart';
 
-/// A single grantable capability in the system, e.g. "product:view". This
-/// is the catalog entry — defining one doesn't grant it to anyone by
-/// itself; a [RoleData] grants it by listing the code in
-/// [RoleData.permissionCodes].
+/// A single grantable capability in the system, e.g. "product:view".
 class PermissionData {
   const PermissionData({
     required this.code,
@@ -25,11 +22,7 @@ class PermissionData {
   }
 }
 
-/// A named security role (SUPER_ADMIN, Warehouse Staff, STAFF, ...) —
-/// admin-defined data, not a fixed set. Holds the set of permission codes
-/// it grants; team members reference a role by [name] (see
-/// TeamMemberData.roleName in team_member_models.dart) instead of a fixed
-/// enum, so adding a role here makes it selectable there too.
+/// A named security role (SUPER_ADMIN, Warehouse Staff, STAFF, ...) — admin-defined data, not a fixed set.
 class RoleData {
   const RoleData({
     required this.name,
@@ -55,8 +48,8 @@ class RoleData {
 // TeamRole enum), so there's no fixed name -> color mapping anymore —
 // instead every name gets a stable color from this list via its hash, so
 // the same name always renders the same color without a lookup table.
-const List<Color> _accentColors = [AppColors.brand700, AppColors.success, AppColors.warning, AppColors.danger];
-const List<Color> _accentBgColors = [AppColors.brand50, AppColors.successBg, AppColors.warningBg, AppColors.dangerBg];
+List<Color> get _accentColors => [AppColors.brand700, AppColors.success, AppColors.warning, AppColors.danger];
+List<Color> get _accentBgColors => [AppColors.brand50, AppColors.successBg, AppColors.warningBg, AppColors.dangerBg];
 
 Color accentColorFor(String name) => _accentColors[name.hashCode.abs() % _accentColors.length];
 

@@ -3,11 +3,13 @@ import 'dart:typed_data';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:stock_management/Config/theme/app_theme.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:stock_management/Config/permissions.dart';
 import 'package:stock_management/Config/routes/app_routes.dart';
 import 'package:stock_management/Controller/approval_chain.dart';
+import 'package:stock_management/Controller/profile_controller.dart';
 import 'package:stock_management/Controller/request_controller.dart';
 import 'package:stock_management/Controller/stock_controller.dart';
 import 'package:stock_management/Model/lookup_models.dart';
@@ -16,6 +18,7 @@ import 'package:stock_management/Services/master_data_service.dart';
 import 'package:stock_management/Services/product_service.dart';
 import 'package:stock_management/Services/request_service.dart';
 import 'package:stock_management/View/AddProduct/product_import_sheet.dart';
+import 'package:stock_management/View/Components/app_snackbar.dart';
 
 class VariantDraft {
   VariantDraft()
@@ -36,6 +39,9 @@ class VariantDraft {
   final TextEditingController sellController;
   final warehouse = Rxn<LookupOption>();
 
+  /// Photo of this variant (required).
+  final image = Rxn<File>();
+
   void dispose() {
     nameController.dispose();
     skuController.dispose();
@@ -47,15 +53,7 @@ class VariantDraft {
   }
 }
 
-/// Add Product form. Someone with PRODUCT_CREATE (ADMIN) saves straight to
-/// `POST /products`; everyone else sends a Product Create request
-/// (`POST /requests`) with an approval chain they pick themselves — the
-/// product only exists once the last approver says yes.
-///
-/// Product code is never asked for (the server generates PRD-0001, ...) and
-/// SKU is optional (the server generates one like APL-IPHONE-15 when empty).
-/// Stock is required: a new product arrives in a warehouse, so quantity must
-/// be at least 1 and a warehouse must be chosen.
+/// Add Product form.
 class AddProductController extends GetxController {
   final _products = ProductService();
   final _masterData = MasterDataService();
@@ -121,7 +119,7 @@ class AddProductController extends GetxController {
     final ok = await Get.bottomSheet<bool>(
       ProductImportSheet(fileName: file.name, rows: rows, errors: errors),
       isScrollControlled: true,
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.cardBg,
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
     );
     if (ok != true) return;
@@ -135,10 +133,9 @@ class AddProductController extends GetxController {
         await Get.find<StockController>().load();
       }
       Get.back();
-      Get.snackbar(
+      AppSnackbar.success(
         'add_product_title'.tr,
         'import_products_done'.trParams({'count': '$count'}),
-        snackPosition: SnackPosition.BOTTOM,
       );
     } on ApiException catch (e) {
       errorMessage.value = e.message;
@@ -159,7 +156,7 @@ class AddProductController extends GetxController {
         allowedExtensions: const ['xlsx'],
       );
       if (saved != null) {
-        Get.snackbar('import_products_template'.tr, 'import_products_template_saved'.tr, snackPosition: SnackPosition.BOTTOM);
+        AppSnackbar.success('import_products_template'.tr, 'import_products_template_saved'.tr);
       }
     } on ApiException catch (e) {
       errorMessage.value = e.message;
@@ -173,10 +170,24 @@ class AddProductController extends GetxController {
 
   // ---- Approval chain (only for people who cannot create directly) ----
   final _requests = RequestService();
-  final chain = ApprovalChain();
+  /// Staff -> Manager / Admin / Super Admin, Manager -> Admin / Super Admin,
+  /// Admin -> Super Admin. Super Admin saves directly (no chain).
+  late final chain = ApprovalChain(approverRoles: _approverRolesForMe());
+
+  static Set<String>? _approverRolesForMe() {
+    final roles = Get.isRegistered<ProfileController>() ? Get.find<ProfileController>().roles : const <String>[];
+    if (roles.contains('SUPER_ADMIN')) return null;
+    if (roles.contains('ADMIN')) return {'SUPER_ADMIN'};
+    if (roles.contains('MANAGER')) return {'ADMIN', 'SUPER_ADMIN'};
+    return {'MANAGER', 'ADMIN', 'SUPER_ADMIN'};
+  }
 
   /// True when this person must send a request instead of saving directly.
-  bool get needsApproval => !can(Perm.productCreate);
+  bool get needsApproval {
+    final signedIn = Get.isRegistered<ProfileController>() ? Get.find<ProfileController>() : null;
+    // Only a Super Admin skips the request.
+    return !(signedIn?.isSuperAdmin ?? false);
+  }
 
   final formKey = GlobalKey<FormState>();
 
@@ -231,6 +242,30 @@ class AddProductController extends GetxController {
 
   void removeImage() => productImage.value = null;
 
+  Future<void> pickVariantImage(int index, ImageSource source) async {
+    if (index < 0 || index >= variantDrafts.length) return;
+    final picked = await _picker.pickImage(source: source, imageQuality: 85, maxWidth: 1600);
+    if (picked != null) {
+      variantDrafts[index].image.value = File(picked.path);
+    }
+  }
+
+  void removeVariantImage(int index) {
+    if (index < 0 || index >= variantDrafts.length) return;
+    variantDrafts[index].image.value = null;
+  }
+
+  /// Photos by variant code (`V1`, `V2`…), matching the codes in [_buildPayload].
+  Map<String, File> _variantImages() {
+    final images = <String, File>{};
+    if (!hasVariants.value) return images;
+    for (var i = 0; i < variantDrafts.length; i++) {
+      final file = variantDrafts[i].image.value;
+      if (file != null) images['V${i + 1}'] = file;
+    }
+    return images;
+  }
+
   void addVariantRow() => variantDrafts.add(VariantDraft());
 
   void removeVariantRow(int index) {
@@ -258,6 +293,13 @@ class AddProductController extends GetxController {
   Future<void> save() async {
     errorMessage.value = null;
     if (!(formKey.currentState?.validate() ?? false)) return;
+    if (hasVariants.value) {
+      final missing = variantDrafts.indexWhere((d) => d.image.value == null);
+      if (missing != -1) {
+        errorMessage.value = 'variant_photo_required'.trParams({'index': '${missing + 1}'});
+        return;
+      }
+    }
     if (needsApproval) {
       final chainError = chain.error;
       if (chainError != null) {
@@ -346,12 +388,13 @@ class AddProductController extends GetxController {
         variants: payload.variants,
         stock: payload.stock,
         image: productImage.value,
+        variantImages: _variantImages(),
       );
       if (Get.isRegistered<StockController>()) {
         await Get.find<StockController>().load();
       }
       Get.back();
-      Get.snackbar('add_product_title'.tr, 'product_added_message'.tr, snackPosition: SnackPosition.BOTTOM);
+      AppSnackbar.success('add_product_title'.tr, 'product_added_message'.tr);
     } on ApiException catch (e) {
       errorMessage.value = e.message;
     } finally {
@@ -373,6 +416,7 @@ class AddProductController extends GetxController {
         stock: payload.stock,
         approvers: approvers,
         image: productImage.value,
+        variantImages: _variantImages(),
       );
       if (!Get.isRegistered<RequestController>()) {
         Get.put(RequestController(), permanent: true);
@@ -380,7 +424,7 @@ class AddProductController extends GetxController {
         await Get.find<RequestController>().load();
       }
       Get.offNamed(Routes.requests);
-      Get.snackbar('add_product_title'.tr, 'product_request_sent_message'.tr, snackPosition: SnackPosition.BOTTOM);
+      AppSnackbar.success('add_product_title'.tr, 'product_request_sent_message'.tr);
     } on ApiException catch (e) {
       errorMessage.value = e.message;
     } finally {

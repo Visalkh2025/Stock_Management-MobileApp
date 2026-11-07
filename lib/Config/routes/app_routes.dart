@@ -1,6 +1,9 @@
 import 'package:get/get.dart';
+import 'package:stock_management/View/Splash/splash_screen.dart';
 import 'package:stock_management/View/Auth/login_screen.dart';
 import 'package:stock_management/View/Auth/new_password_screen.dart';
+import 'package:stock_management/View/Auth/forgot_password_screen.dart';
+import 'package:stock_management/Bindings/forgot_password_binding.dart';
 import 'package:stock_management/View/Home/home_screen.dart';
 import 'package:stock_management/View/Stock/stock_screen.dart';
 import 'package:stock_management/View/Requests/requests_screen.dart';
@@ -12,6 +15,8 @@ import 'package:stock_management/View/Adjust/adjust_screen.dart';
 import 'package:stock_management/View/Manage/manage_screen.dart';
 import 'package:stock_management/View/Manage/categories_screen.dart';
 import 'package:stock_management/View/Manage/brands_screen.dart';
+import 'package:stock_management/View/Manage/master_items_screen.dart';
+import 'package:stock_management/Bindings/master_items_binding.dart';
 import 'package:stock_management/View/Manage/brand_form_screen.dart';
 import 'package:stock_management/View/Manage/category_form_screen.dart';
 import 'package:stock_management/View/Manage/suppliers_screen.dart';
@@ -22,10 +27,23 @@ import 'package:stock_management/View/PurchaseOrders/purchase_orders_screen.dart
 import 'package:stock_management/View/PurchaseOrders/purchase_order_form_screen.dart';
 import 'package:stock_management/View/PurchaseOrders/purchase_order_detail_screen.dart';
 import 'package:stock_management/View/PurchaseOrders/goods_receiving_screen.dart';
+import 'package:stock_management/View/PurchaseOrders/reorder_screen.dart';
+import 'package:stock_management/View/CustomerOrders/customer_orders_screen.dart';
+import 'package:stock_management/View/CustomerOrders/customer_order_detail_screen.dart';
+import 'package:stock_management/Bindings/customer_orders_binding.dart';
+import 'package:stock_management/Bindings/notifications_binding.dart';
+import 'package:stock_management/View/Notifications/notifications_screen.dart';
+import 'package:stock_management/Bindings/customer_order_detail_binding.dart';
+import 'package:stock_management/View/Stock/stock_history_screen.dart';
+import 'package:stock_management/Bindings/stock_history_binding.dart';
+import 'package:stock_management/View/PurchaseOrders/supplier_compare_screen.dart';
+import 'package:stock_management/Bindings/reorder_binding.dart';
+import 'package:stock_management/Bindings/supplier_compare_binding.dart';
 import 'package:stock_management/View/Reports/reports_screen.dart';
 import 'package:stock_management/View/TeamMembers/team_members_screen.dart';
 import 'package:stock_management/View/TeamMembers/team_member_form_screen.dart';
 import 'package:stock_management/View/Settings/settings_screen.dart';
+import 'package:stock_management/View/Settings/change_password_screen.dart';
 import 'package:stock_management/View/HelpSupport/help_support_screen.dart';
 import 'package:stock_management/View/Roles/rbac_hub_screen.dart';
 import 'package:stock_management/View/Roles/role_form_screen.dart';
@@ -34,6 +52,8 @@ import 'package:stock_management/View/Roles/permission_form_screen.dart';
 import 'package:stock_management/View/More/more_screen.dart';
 import 'package:stock_management/View/ProductDetail/product_detail_screen.dart';
 import 'package:stock_management/View/AddProduct/add_product_screen.dart';
+import 'package:stock_management/View/ProductDetail/edit_product_screen.dart';
+import 'package:stock_management/Bindings/edit_product_binding.dart';
 import 'package:stock_management/View/ScanQr/scan_qr_screen.dart';
 import 'package:stock_management/View/Profile/profile_screen.dart';
 import 'package:stock_management/Bindings/auth_binding.dart';
@@ -62,6 +82,7 @@ import 'package:stock_management/Bindings/reports_binding.dart';
 import 'package:stock_management/Bindings/team_members_binding.dart';
 import 'package:stock_management/Bindings/team_member_form_binding.dart';
 import 'package:stock_management/Bindings/settings_binding.dart';
+import 'package:stock_management/Bindings/change_password_binding.dart';
 import 'package:stock_management/Bindings/help_support_binding.dart';
 import 'package:stock_management/Bindings/rbac_hub_binding.dart';
 import 'package:stock_management/Bindings/role_form_binding.dart';
@@ -76,6 +97,7 @@ import 'package:stock_management/Bindings/profile_binding.dart';
 class Routes {
   Routes._();
 
+  static const splash = '/splash';
   static const login = '/login';
   static const newPassword = '/new_password';
   static const forgotPassword = '/forgot_password';
@@ -93,6 +115,7 @@ class Routes {
   static const categories = '/categories';
   static const categoryForm = '/category_form';
   static const brands = '/brands';
+  static const masterItems = '/master_items';
   static const brandForm = '/brand_form';
   static const suppliers = '/suppliers';
   static const supplierForm = '/supplier_form';
@@ -102,10 +125,17 @@ class Routes {
   static const purchaseOrderForm = '/purchase_order_form';
   static const purchaseOrderDetail = '/purchase_order_detail';
   static const goodsReceiving = '/goods_receiving';
+  static const customerOrders = '/customer_orders';
+  static const customerOrderDetail = '/customer_order_detail';
+  static const notifications = '/notifications';
+  static const reorder = '/po_reorder';
+  static const stockHistory = '/stock_history';
+  static const supplierCompare = '/po_supplier_compare';
   static const reports = '/reports';
   static const teamMembers = '/team_members';
   static const teamMemberForm = '/team_member_form';
   static const settings = '/settings';
+  static const changePassword = '/change_password';
   static const helpSupport = '/help_support';
   static const rolesPermissions = '/roles_permissions';
   static const roleForm = '/role_form';
@@ -114,14 +144,27 @@ class Routes {
   static const more = '/more';
   static const productDetail = '/product_detail';
   static const addProduct = '/add_product';
+  static const editProduct = '/edit_product';
   static const scanQr = '/scan_qr';
   static const profile = '/profile';
 
   static final pages = <GetPage>[
     GetPage(
+      name: splash,
+      page: () => const SplashScreen(),
+    ),
+    GetPage(
       name: login,
       page: () => const LoginScreen(),
       binding: AuthBinding(),
+      // The splash fades into it (and a sign-out fades back to it).
+      transition: Transition.fadeIn,
+      transitionDuration: const Duration(milliseconds: 400),
+    ),
+    GetPage(
+      name: forgotPassword,
+      page: () => const ForgotPasswordScreen(),
+      binding: ForgotPasswordBinding(),
     ),
     GetPage(
       name: newPassword,
@@ -202,6 +245,11 @@ class Routes {
       binding: BrandBinding(),
     ),
     GetPage(
+      name: masterItems,
+      page: () => const MasterItemsScreen(),
+      binding: MasterItemsBinding(),
+    ),
+    GetPage(
       name: brandForm,
       page: () => const BrandFormScreen(),
       binding: BrandFormBinding(),
@@ -242,9 +290,39 @@ class Routes {
       binding: PurchaseOrderDetailBinding(),
     ),
     GetPage(
+      name: customerOrders,
+      page: () => const CustomerOrdersScreen(),
+      binding: CustomerOrdersBinding(),
+    ),
+    GetPage(
+      name: notifications,
+      page: () => const NotificationsScreen(),
+      binding: NotificationsBinding(),
+    ),
+    GetPage(
+      name: customerOrderDetail,
+      page: () => const CustomerOrderDetailScreen(),
+      binding: CustomerOrderDetailBinding(),
+    ),
+    GetPage(
       name: goodsReceiving,
       page: () => const GoodsReceivingScreen(),
       binding: GoodsReceivingBinding(),
+    ),
+    GetPage(
+      name: stockHistory,
+      page: () => const StockHistoryScreen(),
+      binding: StockHistoryBinding(),
+    ),
+    GetPage(
+      name: reorder,
+      page: () => const ReorderScreen(),
+      binding: ReorderBinding(),
+    ),
+    GetPage(
+      name: supplierCompare,
+      page: () => const SupplierCompareScreen(),
+      binding: SupplierCompareBinding(),
     ),
     GetPage(
       name: reports,
@@ -265,6 +343,11 @@ class Routes {
       name: settings,
       page: () => const SettingsScreen(),
       binding: SettingsBinding(),
+    ),
+    GetPage(
+      name: changePassword,
+      page: () => const ChangePasswordScreen(),
+      binding: ChangePasswordBinding(),
     ),
     GetPage(
       name: helpSupport,
@@ -307,6 +390,11 @@ class Routes {
       name: addProduct,
       page: () => const AddProductScreen(),
       binding: AddProductBinding(),
+    ),
+    GetPage(
+      name: editProduct,
+      page: () => const EditProductScreen(),
+      binding: EditProductBinding(),
     ),
     GetPage(
       name: scanQr,

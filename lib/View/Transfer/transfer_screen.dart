@@ -7,10 +7,7 @@ import 'package:stock_management/View/Components/app_picker_field.dart';
 import 'package:stock_management/View/Components/stock_form_parts.dart';
 import 'package:stock_management/View/Components/stock_lines_section.dart';
 
-/// Reached from Home's "Transfer" quick action (see Routes.transfer,
-/// TransferBinding). Extracted out of the generic New Request form the
-/// same way Stock In/Out were — this flow carries a live on-hand check the
-/// other request types don't need. See [TransferController].
+/// Reached from Home's "Transfer" quick action (see Routes.transfer, TransferBinding).
 class TransferScreen extends GetView<TransferController> {
   const TransferScreen({super.key});
 
@@ -79,7 +76,7 @@ class TransferScreen extends GetView<TransferController> {
   Widget _sectionLabel(String text) {
     return Text(
       text.toUpperCase(),
-      style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700, color: AppColors.textTertiary, letterSpacing: 0.4),
+      style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700, color: AppColors.textTertiary, letterSpacing: 0.4),
     );
   }
 
@@ -108,7 +105,7 @@ class TransferScreen extends GetView<TransferController> {
             ),
           ),
           const SizedBox(width: 12),
-          const Padding(
+          Padding(
             padding: EdgeInsets.only(top: 22),
             child: Icon(Icons.arrow_forward_rounded, size: 16, color: AppColors.textTertiary),
           ),

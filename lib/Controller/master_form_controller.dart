@@ -4,12 +4,7 @@ import 'package:stock_management/Controller/master_list_controller.dart';
 import 'package:stock_management/Model/master_data_models.dart';
 import 'package:stock_management/Services/api_exception.dart';
 
-/// Add/Edit form behind one Manage > `<thing>` list. `Get.arguments` is the
-/// record being edited, or null when adding. The code is chosen once, when
-/// adding (other records refer to it, so it can't change afterwards).
-///
-/// A subclass supplies its list controller, the extra fields via
-/// [fillFrom] / [extraBody], and disposes the controllers it adds.
+/// Add/Edit form behind one Manage > `<thing>` list.
 abstract class MasterFormController<T extends MasterRecord> extends GetxController {
   T? get original => Get.arguments as T?;
 

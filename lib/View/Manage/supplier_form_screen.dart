@@ -4,6 +4,7 @@ import 'package:stock_management/Config/theme/app_theme.dart';
 import 'package:stock_management/Controller/supplier_form_controller.dart';
 import 'package:stock_management/View/Components/app_screen_header.dart';
 import 'package:stock_management/View/Components/master_data_parts.dart';
+import 'package:stock_management/View/Components/app_picker_field.dart';
 import 'package:stock_management/View/Components/app_text_field.dart';
 
 /// Add/Edit Supplier — reached from Manage > Suppliers (+Add or a row's
@@ -72,7 +73,7 @@ class SupplierFormScreen extends GetView<SupplierFormController> {
   Widget _sectionLabel(String text) {
     return Text(
       text.toUpperCase(),
-      style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700, color: AppColors.textTertiary, letterSpacing: 0.4),
+      style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700, color: AppColors.textTertiary, letterSpacing: 0.4),
     );
   }
 
@@ -117,11 +118,40 @@ class SupplierFormScreen extends GetView<SupplierFormController> {
           ),
           const SizedBox(height: 14),
           AppTextField(
+            label: 'field_country'.tr,
+            controller: controller.countryController,
+            hintText: 'hint_country_example'.tr,
+          ),
+          const SizedBox(height: 14),
+          AppTextField(
             label: 'field_address'.tr,
             controller: controller.addressController,
             hintText: 'hint_optional'.tr,
             maxLines: 2,
           ),
+          const SizedBox(height: 14),
+          Obx(
+            () => AppPickerField(
+              label: 'field_platform'.tr,
+              hintText: 'hint_optional'.tr,
+              value: controller.platform.value,
+              options: controller.platforms,
+              prefixIcon: Icon(Icons.forum_outlined, size: 20, color: AppColors.textTertiary),
+              onChanged: (v) => controller.platform.value = v,
+            ),
+          ),
+          Obx(() {
+            if (controller.platform.value == null) return const SizedBox.shrink();
+            return Padding(
+              padding: const EdgeInsets.only(top: 14),
+              child: AppTextField(
+                label: 'field_platform_link'.tr,
+                controller: controller.platformLinkController,
+                hintText: 'hint_platform_link'.tr,
+                keyboardType: TextInputType.url,
+              ),
+            );
+          }),
         ],
       ),
     );

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:stock_management/Config/routes/app_routes.dart';
 import 'package:stock_management/Controller/locale_controller.dart';
 
 /// More > Settings — a handful of UI-only preference toggles (no backend
@@ -29,12 +30,5 @@ class SettingsController extends GetxController {
 
   void setLanguage(String languageCode) => _locale.changeLocale(languageCode);
 
-  void changePassword() {
-    Get.snackbar(
-      'change_password_title'.tr,
-      'change_password_body'.tr,
-      snackPosition: SnackPosition.BOTTOM,
-      margin: const EdgeInsets.all(16),
-    );
-  }
+  void changePassword() => Get.toNamed(Routes.changePassword);
 }

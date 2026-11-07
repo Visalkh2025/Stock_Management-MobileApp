@@ -9,10 +9,7 @@ import 'package:stock_management/View/Components/app_screen_header.dart';
 import 'package:stock_management/View/Components/app_text_field.dart';
 import 'package:stock_management/View/Components/user_avatar.dart';
 
-/// Reached from the More screen's profile row and the Home header's
-/// avatar. One screen, two modes — a read-only view and an edit form —
-/// toggled by [ProfileController.isEditing]; see that controller for the
-/// shared [UserProfileData] both other screens also read.
+/// Reached from the More screen's profile row and the Home header's avatar.
 class ProfileScreen extends GetView<ProfileController> {
   const ProfileScreen({super.key});
 
@@ -100,9 +97,9 @@ class ProfileScreen extends GetView<ProfileController> {
         children: [
           Center(child: UserAvatar(profile: p, size: 96)),
           const SizedBox(height: 14),
-          Text(p.name, textAlign: TextAlign.center, style: const TextStyle(fontSize: 19, fontWeight: FontWeight.w800, color: AppColors.ink)),
+          Text(p.name, textAlign: TextAlign.center, style: TextStyle(fontSize: 19, fontWeight: FontWeight.w800, color: AppColors.ink)),
           const SizedBox(height: 3),
-          Text(p.role, textAlign: TextAlign.center, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.muted)),
+          Text(p.role, textAlign: TextAlign.center, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.muted)),
           const SizedBox(height: 22),
           _infoCard(p),
           const SizedBox(height: 22),
@@ -126,7 +123,7 @@ class ProfileScreen extends GetView<ProfileController> {
       child: Column(
         children: [
           _infoRow(icon: Icons.mail_outline_rounded, label: 'field_email'.tr, value: p.email),
-          const Divider(height: 1, thickness: 1, color: AppColors.border, indent: 14, endIndent: 14),
+          Divider(height: 1, thickness: 1, color: AppColors.border, indent: 14, endIndent: 14),
           _infoRow(icon: Icons.call_outlined, label: 'field_phone'.tr, value: (p.phone == null || p.phone!.isEmpty) ? 'value_not_set'.tr : p.phone!),
         ],
       ),
@@ -151,9 +148,9 @@ class ProfileScreen extends GetView<ProfileController> {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text(label, style: const TextStyle(fontSize: 10.5, fontWeight: FontWeight.w600, color: AppColors.textTertiary)),
+                Text(label, style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.w600, color: AppColors.textTertiary)),
                 const SizedBox(height: 1),
-                Text(value, style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.w600, color: AppColors.ink)),
+                Text(value, style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w600, color: AppColors.ink)),
               ],
             ),
           ),
@@ -163,9 +160,6 @@ class ProfileScreen extends GetView<ProfileController> {
   }
 
   // Card-style row (matches the info/menu rows elsewhere) instead of a
-  // plain outlined button — a soft danger-tinted fill, a white icon chip,
-  // and a trailing chevron so it reads as one more tappable row, not an
-  // odd stand-alone outline.
   Widget get _signOutButton {
     return Material(
       color: AppColors.dangerBg,
@@ -185,15 +179,15 @@ class ProfileScreen extends GetView<ProfileController> {
               Container(
                 width: 36,
                 height: 36,
-                decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(11)),
+                decoration: BoxDecoration(color: AppColors.cardBg, borderRadius: BorderRadius.circular(11)),
                 alignment: Alignment.center,
-                child: const Icon(Icons.logout_rounded, size: 17, color: AppColors.danger),
+                child: Icon(Icons.logout_rounded, size: 17, color: AppColors.danger),
               ),
               const SizedBox(width: 12),
               Expanded(
                 child: Text(
                   'sign_out'.tr,
-                  style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: AppColors.danger),
+                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: AppColors.danger),
                 ),
               ),
               Icon(Icons.chevron_right_rounded, size: 18, color: AppColors.danger.withValues(alpha: 0.6)),
@@ -265,7 +259,7 @@ class ProfileScreen extends GetView<ProfileController> {
               child: image == null
                   ? Text(
                       controller.profile.value.initials,
-                      style: const TextStyle(fontSize: 26, fontWeight: FontWeight.w700, color: AppColors.brand700),
+                      style: TextStyle(fontSize: 26, fontWeight: FontWeight.w700, color: AppColors.brand700),
                     )
                   : null,
             ),
@@ -301,7 +295,7 @@ class ProfileScreen extends GetView<ProfileController> {
         child: Wrap(
           children: [
             ListTile(
-              leading: const Icon(Icons.photo_camera_outlined, color: AppColors.brand700),
+              leading: Icon(Icons.photo_camera_outlined, color: AppColors.brand700),
               title: Text('action_take_photo'.tr),
               onTap: () {
                 Get.back();
@@ -309,7 +303,7 @@ class ProfileScreen extends GetView<ProfileController> {
               },
             ),
             ListTile(
-              leading: const Icon(Icons.photo_library_outlined, color: AppColors.brand700),
+              leading: Icon(Icons.photo_library_outlined, color: AppColors.brand700),
               title: Text('action_choose_from_gallery'.tr),
               onTap: () {
                 Get.back();
@@ -318,7 +312,7 @@ class ProfileScreen extends GetView<ProfileController> {
             ),
             if (controller.draftAvatar.value != null)
               ListTile(
-                leading: const Icon(Icons.delete_outline, color: AppColors.danger),
+                leading: Icon(Icons.delete_outline, color: AppColors.danger),
                 title: Text('action_remove_photo'.tr),
                 onTap: () {
                   Get.back();

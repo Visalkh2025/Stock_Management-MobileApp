@@ -5,17 +5,19 @@ import 'package:stock_management/Model/request_models.dart';
 import 'package:stock_management/Services/api_exception.dart';
 import 'package:stock_management/Services/master_data_service.dart';
 import 'package:stock_management/Services/request_service.dart';
+import 'package:stock_management/View/Components/date_filter_bar.dart';
 
-/// The Requests tab. Product requests come from the server
-/// (`GET /requests`); the flows that are not wired to the API yet
-/// (transfer, adjustment, stock in/out, purchase order) still drop
-/// local-only rows into [_local] so those screens keep working as demos.
+/// The Requests tab.
 class RequestController extends GetxController {
   final _service = RequestService();
   final _masterData = MasterDataService();
 
   // null = "All" — no status filter applied. Defaults to All.
   final Rx<RequestStatus?> activeFilter = Rx<RequestStatus?>(null);
+
+  /// Date the request was made. Applied here on the loaded list (everything
+  /// is already loaded), so [allItems] stays untouched for other screens.
+  final dateFilter = const DateFilter().obs;
 
   final _remote = <RequestItemData>[].obs;
   final _local = <RequestItemData>[].obs;
@@ -33,7 +35,14 @@ class RequestController extends GetxController {
 
   List<RequestItemData> get _items => [..._local, ..._remote];
 
-  int get totalCount => _items.length;
+  /// [_items] limited to the chosen dates (rows without a date always stay).
+  List<RequestItemData> get _inDates {
+    final filter = dateFilter.value;
+    if (!filter.isActive) return _items;
+    return _items.where((item) => item.createdAt == null || filter.contains(item.createdAt!)).toList();
+  }
+
+  int get totalCount => _inDates.length;
 
   /// Unlike [filteredItems], ignores [activeFilter] — for a screen with its
   /// own independent filter over the same underlying list (e.g. Purchase
@@ -41,16 +50,18 @@ class RequestController extends GetxController {
   /// not be affected by whatever status filter the Requests tab is on).
   List<RequestItemData> get allItems => _items;
 
-  int countFor(RequestStatus status) => _items.where((item) => item.status == status).length;
+  int countFor(RequestStatus status) => _inDates.where((item) => item.status == status).length;
 
   List<RequestItemData> get filteredItems {
     final filter = activeFilter.value;
-    final items = _items;
+    final items = _inDates;
     if (filter == null) return items;
     return items.where((item) => item.status == filter).toList();
   }
 
   void setFilter(RequestStatus? status) => activeFilter.value = status;
+
+  void setDateFilter(DateFilter value) => dateFilter.value = value;
 
   /// Loads every request the server returns, plus the names for the codes
   /// (category, brand, ...) a request stores.

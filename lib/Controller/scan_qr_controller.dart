@@ -5,10 +5,7 @@ import 'package:stock_management/Model/stock_models.dart';
 import 'package:stock_management/Services/api_exception.dart';
 import 'package:stock_management/Services/product_service.dart';
 
-/// Backs the Scan screen reached from the bottom nav's center button on
-/// every main tab. Owns the camera + the "already handling a result" guard;
-/// the screen itself drives navigation and the not-found sheet so all UI
-/// stays in the View, same as the rest of this app.
+/// Backs the Scan screen reached from the bottom nav's center button on every main tab.
 class ScanQrController extends GetxController {
   final MobileScannerController cameraController = MobileScannerController(
     detectionSpeed: DetectionSpeed.noDuplicates,
@@ -21,10 +18,7 @@ class ScanQrController extends GetxController {
   // while the corner brackets turn green.
   final captured = false.obs;
 
-  // True once that badge should swap from the QR icon to a check tick —
-  // set a beat after [captured] so the two play in sequence (jump in, then
-  // confirm) rather than both appearing at once. The View holds navigation
-  // until both stages have had time to play — see ScanQrScreen._resolve.
+  // True once that badge should swap from the QR icon to a check tick — set a beat after [captured] so the two play in sequence (jump in, then confirm) rather than both appearing at once.
   final showTick = false.obs;
 
   // True while a detected/typed code is being looked up and its result
@@ -57,10 +51,7 @@ class ScanQrController extends GetxController {
     torchOn.value = !torchOn.value;
   }
 
-  /// Call before acting on a scanned/typed code. Returns false (and does
-  /// nothing) if a result is already being handled; otherwise pauses the
-  /// camera, starts the capture animation (the QR badge jumping in), and
-  /// returns true so the caller can proceed.
+  /// Call before acting on a scanned/typed code.
   bool beginHandling() {
     if (_handling) return false;
     _handling = true;

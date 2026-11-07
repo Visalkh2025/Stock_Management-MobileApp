@@ -8,14 +8,14 @@ class MoreMenuRow extends StatelessWidget {
     super.key,
     required this.icon,
     required this.label,
-    this.iconColor = AppColors.brand700,
+    this.iconColor,
     this.trailing,
     this.onTap,
   });
 
   final IconData icon;
   final String label;
-  final Color iconColor;
+  final Color? iconColor;
   final Widget? trailing;
   final VoidCallback? onTap;
 
@@ -32,13 +32,13 @@ class MoreMenuRow extends StatelessWidget {
               height: 34,
               decoration: BoxDecoration(color: AppColors.brand50, borderRadius: BorderRadius.circular(11)),
               alignment: Alignment.center,
-              child: Icon(icon, size: 16, color: iconColor),
+              child: Icon(icon, size: 16, color: iconColor ?? AppColors.brand700),
             ),
             const SizedBox(width: 12),
             Expanded(
               child: Text(
                 label,
-                style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.ink),
+                style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.ink),
                 overflow: TextOverflow.ellipsis,
               ),
             ),

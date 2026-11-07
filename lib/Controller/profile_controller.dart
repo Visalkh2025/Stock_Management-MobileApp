@@ -2,6 +2,8 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:stock_management/Services/order_watcher.dart';
+import 'package:stock_management/Services/push_service.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:stock_management/Config/routes/app_routes.dart';
 import 'package:stock_management/Controller/request_controller.dart';
@@ -9,6 +11,7 @@ import 'package:stock_management/Controller/stock_controller.dart';
 import 'package:stock_management/Model/auth_models.dart';
 import 'package:stock_management/Model/profile_models.dart';
 import 'package:stock_management/Services/auth_service.dart';
+import 'package:stock_management/View/Components/app_snackbar.dart';
 
 class ProfileController extends GetxController {
   final Rx<UserProfileData> profile = const UserProfileData(
@@ -59,14 +62,10 @@ class ProfileController extends GetxController {
   final _picker = ImagePicker();
 
   void startEditing() {
-    // The backend has a CreateUserDto/UpdateUserDto for profile fields but
-    // no endpoint wired up yet to actually save an edit (no `PATCH/PUT
-    // /users/me`, no avatar upload) — so editing would silently do nothing
-    // useful. Tell the user instead of opening a form that can't save.
-    Get.snackbar(
+    // The backend has a CreateUserDto/UpdateUserDto for profile fields but no endpoint wired up yet to actually save an edit (no `PATCH/PUT /users/me`, no avatar upload) — so editing would silently do nothing useful.
+    AppSnackbar.warning(
       'coming_soon_title'.tr,
       'profile_edit_coming_soon_message'.tr,
-      snackPosition: SnackPosition.BOTTOM,
     );
   }
 
@@ -90,15 +89,16 @@ class ProfileController extends GetxController {
       clearAvatar: draftAvatar.value == null,
     );
     isEditing.value = false;
-    Get.snackbar(
+    AppSnackbar.success(
       'profile_updated_title'.tr,
       'profile_updated_message'.tr,
-      snackPosition: SnackPosition.BOTTOM,
-      margin: const EdgeInsets.all(16),
     );
   }
 
   Future<void> signOut() async {
+    // Needs the access token, so before the session is cleared.
+    await PushService.instance.unregister();
+    OrderWatcher.instance.stop();
     await _authService.logout();
     permissions.clear();
     // The Stock list is cached in a permanent controller — drop it so the

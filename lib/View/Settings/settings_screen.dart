@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:stock_management/Config/theme/app_theme.dart';
 import 'package:stock_management/Controller/settings_controller.dart';
+import 'package:stock_management/Controller/theme_controller.dart';
 import 'package:stock_management/View/Components/app_screen_header.dart';
 import 'package:stock_management/View/Components/more_menu_row.dart';
 
@@ -60,10 +61,39 @@ class SettingsScreen extends GetView<SettingsController> {
                         label: 'change_password'.tr,
                         iconColor: AppColors.muted,
                         onTap: controller.changePassword,
-                        trailing: const Icon(Icons.chevron_right_rounded, size: 18, color: AppColors.textTertiary),
+                        trailing: Icon(Icons.chevron_right_rounded, size: 18, color: AppColors.textTertiary),
                       ),
                     ]),
                   ),
+                  const SizedBox(height: 18),
+                  _sectionLabel('section_appearance'.tr),
+                  const SizedBox(height: 8),
+                  Obx(() {
+                    final theme = Get.find<ThemeController>();
+                    return _group([
+                      MoreMenuRow(
+                        icon: Icons.brightness_auto_rounded,
+                        label: 'theme_system'.tr,
+                        iconColor: AppColors.muted,
+                        onTap: () => theme.setMode(ThemeMode.system),
+                        trailing: _languageCheck(theme.mode.value == ThemeMode.system),
+                      ),
+                      MoreMenuRow(
+                        icon: Icons.light_mode_outlined,
+                        label: 'theme_light'.tr,
+                        iconColor: AppColors.muted,
+                        onTap: () => theme.setMode(ThemeMode.light),
+                        trailing: _languageCheck(theme.mode.value == ThemeMode.light),
+                      ),
+                      MoreMenuRow(
+                        icon: Icons.dark_mode_outlined,
+                        label: 'theme_dark'.tr,
+                        iconColor: AppColors.muted,
+                        onTap: () => theme.setMode(ThemeMode.dark),
+                        trailing: _languageCheck(theme.mode.value == ThemeMode.dark),
+                      ),
+                    ]);
+                  }),
                   const SizedBox(height: 18),
                   _sectionLabel('section_language'.tr),
                   const SizedBox(height: 8),
@@ -89,7 +119,7 @@ class SettingsScreen extends GetView<SettingsController> {
                   Center(
                     child: Text(
                       'StockFlow v1.0.0',
-                      style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.textTertiary),
+                      style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.textTertiary),
                     ),
                   ),
                 ],
@@ -133,7 +163,7 @@ class SettingsScreen extends GetView<SettingsController> {
   Widget _sectionLabel(String text) {
     return Text(
       text.toUpperCase(),
-      style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700, color: AppColors.textTertiary, letterSpacing: 0.4),
+      style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700, color: AppColors.textTertiary, letterSpacing: 0.4),
     );
   }
 
@@ -153,7 +183,7 @@ class SettingsScreen extends GetView<SettingsController> {
           for (var i = 0; i < rows.length; i++) ...[
             rows[i],
             if (i != rows.length - 1)
-              const Divider(height: 1, thickness: 1, color: AppColors.border, indent: 14, endIndent: 14),
+              Divider(height: 1, thickness: 1, color: AppColors.border, indent: 14, endIndent: 14),
           ],
         ],
       ),
