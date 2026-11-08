@@ -50,6 +50,12 @@ class MoreScreen extends GetView<MoreController> {
                       onTap: controller.openCustomerOrders,
                       trailing: _chevron,
                     ),
+                    MoreMenuRow(
+                      icon: Icons.contacts_outlined,
+                      label: 'menu_customers'.tr,
+                      onTap: controller.openCustomers,
+                      trailing: _chevron,
+                    ),
                     if (can(Perm.adjustmentView))
                     MoreMenuRow(
                       icon: Icons.history_rounded,

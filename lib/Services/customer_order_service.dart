@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:stock_management/Config/api_config.dart';
+import 'package:stock_management/Model/customer_models.dart';
 import 'package:stock_management/Model/customer_order_models.dart';
 import 'package:stock_management/Services/api_client.dart';
 import 'package:stock_management/Services/image_upload.dart';
@@ -47,6 +48,62 @@ class CustomerOrderService {
     final List data = json is List ? json : ((json is Map ? (json['data'] ?? json['items']) : null) as List? ?? const []);
     return data.map((e) => CustomerOrderSummary.fromJson(Map<String, dynamic>.from(e as Map))).toList()
       ..sort((a, b) => (b.createdAt ?? DateTime(0)).compareTo(a.createdAt ?? DateTime(0)));
+  }
+
+  /// `GET /customer-orders/customers` is paginated (max 100 per page) — walk every page.
+  Future<List<CustomerRow>> fetchCustomers() async {
+    final rows = <CustomerRow>[];
+    var page = 1;
+    while (true) {
+      final json = await _apiClient.get(ApiConfig.customers, query: {'page': page, 'limit': 100});
+      final List data;
+      var totalPages = 1;
+      if (json is List) {
+        data = json;
+      } else if (json is Map) {
+        data = (json['items'] ?? json['data'] ?? const []) as List;
+        final meta = json['meta'];
+        if (meta is Map) totalPages = int.tryParse('${meta['totalPages'] ?? 1}') ?? 1;
+      } else {
+        data = const [];
+      }
+      rows.addAll(data.map((e) => CustomerRow.fromJson(Map<String, dynamic>.from(e as Map))));
+      if (json is List || page >= totalPages) break;
+      page++;
+    }
+    return rows;
+  }
+
+  Future<CustomerRow> fetchCustomer(String id) async {
+    final json = await _apiClient.get(ApiConfig.customerById(id));
+    return CustomerRow.fromJson(Map<String, dynamic>.from(json as Map));
+  }
+
+  /// Every order of one customer, newest first (the API already sorts them).
+  Future<List<CustomerOrderSummary>> fetchOrdersOfCustomer(String customerId) async {
+    final rows = <CustomerOrderSummary>[];
+    var page = 1;
+    while (true) {
+      final json = await _apiClient.get(
+        ApiConfig.customerOrders,
+        query: {'page': page, 'limit': 100, 'customerId': customerId},
+      );
+      final List data;
+      var hasNext = false;
+      if (json is List) {
+        data = json;
+      } else if (json is Map) {
+        data = (json['data'] ?? json['items'] ?? const []) as List;
+        final meta = json['meta'];
+        hasNext = meta is Map && meta['hasNextPage'] == true;
+      } else {
+        data = const [];
+      }
+      rows.addAll(data.map((e) => CustomerOrderSummary.fromJson(Map<String, dynamic>.from(e as Map))));
+      if (!hasNext) break;
+      page++;
+    }
+    return rows;
   }
 
   Future<CustomerOrderDetail> fetchOne(String id) async {

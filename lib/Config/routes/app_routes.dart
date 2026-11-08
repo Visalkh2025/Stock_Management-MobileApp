@@ -31,6 +31,9 @@ import 'package:stock_management/View/PurchaseOrders/reorder_screen.dart';
 import 'package:stock_management/View/CustomerOrders/customer_orders_screen.dart';
 import 'package:stock_management/View/CustomerOrders/customer_order_detail_screen.dart';
 import 'package:stock_management/Bindings/customer_orders_binding.dart';
+import 'package:stock_management/Bindings/customers_binding.dart';
+import 'package:stock_management/View/Customers/customers_screen.dart';
+import 'package:stock_management/View/Customers/customer_detail_screen.dart';
 import 'package:stock_management/Bindings/notifications_binding.dart';
 import 'package:stock_management/View/Notifications/notifications_screen.dart';
 import 'package:stock_management/Bindings/customer_order_detail_binding.dart';
@@ -127,6 +130,8 @@ class Routes {
   static const goodsReceiving = '/goods_receiving';
   static const customerOrders = '/customer_orders';
   static const customerOrderDetail = '/customer_order_detail';
+  static const customers = '/customers';
+  static const customerDetail = '/customer_detail';
   static const notifications = '/notifications';
   static const reorder = '/po_reorder';
   static const stockHistory = '/stock_history';
@@ -293,6 +298,16 @@ class Routes {
       name: customerOrders,
       page: () => const CustomerOrdersScreen(),
       binding: CustomerOrdersBinding(),
+    ),
+    GetPage(
+      name: customers,
+      page: () => const CustomersScreen(),
+      binding: CustomersBinding(),
+    ),
+    GetPage(
+      name: customerDetail,
+      page: () => const CustomerDetailScreen(),
+      binding: CustomerDetailBinding(),
     ),
     GetPage(
       name: notifications,

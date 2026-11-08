@@ -171,7 +171,7 @@ class AddProductController extends GetxController {
   // ---- Approval chain (only for people who cannot create directly) ----
   final _requests = RequestService();
   /// Staff -> Manager / Admin / Super Admin, Manager -> Admin / Super Admin,
-  /// Admin -> Super Admin. Super Admin saves directly (no chain).
+  /// Admin -> Super Admin. Super Admin, Admin and Manager save directly (no chain).
   late final chain = ApprovalChain(approverRoles: _approverRolesForMe());
 
   static Set<String>? _approverRolesForMe() {
@@ -185,8 +185,9 @@ class AddProductController extends GetxController {
   /// True when this person must send a request instead of saving directly.
   bool get needsApproval {
     final signedIn = Get.isRegistered<ProfileController>() ? Get.find<ProfileController>() : null;
-    // Only a Super Admin skips the request.
-    return !(signedIn?.isSuperAdmin ?? false);
+    // Super Admin, Admin and Manager (PRODUCT_CREATE) save directly; only Staff send a request.
+    final direct = signedIn != null && (signedIn.isSuperAdmin || signedIn.can(Perm.productCreate));
+    return !direct;
   }
 
   final formKey = GlobalKey<FormState>();

@@ -62,6 +62,8 @@ class ApiConfig {
   static const String devices = '/devices';
   static const String devicesUnregister = '/devices/unregister';
   static String customerOrderById(String id) => '/customer-orders/$id';
+  static const String customers = '/customer-orders/customers';
+  static String customerById(String id) => '/customer-orders/customers/$id';
   static String customerOrderAction(String id, String action) => '/customer-orders/$id/$action';
 
   // ---- Master data (pickers) ----
