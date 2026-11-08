@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:stock_management/Config/price_input.dart';
 import 'package:stock_management/Config/theme/app_theme.dart';
 import 'package:stock_management/Controller/edit_product_controller.dart';
 import 'package:stock_management/View/Components/app_button.dart';
@@ -243,6 +244,9 @@ class EditProductScreen extends GetView<EditProductController> {
                 Expanded(
                   child: AppTextField(
                     label: 'field_cost_price'.tr,
+                    validator: validatePrice,
+                    inputFormatters: priceInputFormatters,
+                    autovalidateMode: AutovalidateMode.onUserInteraction,
                     controller: controller.costPriceController,
                     prefixText: '\$ ',
                     keyboardType: money,
@@ -252,6 +256,9 @@ class EditProductScreen extends GetView<EditProductController> {
                 Expanded(
                   child: AppTextField(
                     label: 'field_sale_price'.tr,
+                    validator: validatePrice,
+                    inputFormatters: priceInputFormatters,
+                    autovalidateMode: AutovalidateMode.onUserInteraction,
                     controller: controller.sellingPriceController,
                     prefixText: '\$ ',
                     keyboardType: money,
@@ -325,6 +332,9 @@ class EditProductScreen extends GetView<EditProductController> {
               Expanded(
                 child: AppTextField(
                   label: 'field_cost_price'.tr,
+                  validator: validatePrice,
+                  inputFormatters: priceInputFormatters,
+                  autovalidateMode: AutovalidateMode.onUserInteraction,
                   controller: draft.costController,
                   prefixText: '\$ ',
                   keyboardType: money,
@@ -334,6 +344,9 @@ class EditProductScreen extends GetView<EditProductController> {
               Expanded(
                 child: AppTextField(
                   label: 'field_sale_price'.tr,
+                  validator: validatePrice,
+                  inputFormatters: priceInputFormatters,
+                  autovalidateMode: AutovalidateMode.onUserInteraction,
                   controller: draft.sellController,
                   prefixText: '\$ ',
                   keyboardType: money,

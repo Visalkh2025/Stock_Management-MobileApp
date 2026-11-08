@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:stock_management/Config/theme/app_theme.dart';
 
 /// Reusable labeled text field: small muted label on top, flat rounded
@@ -17,6 +18,8 @@ class AppTextField extends StatelessWidget {
     this.helperText,
     this.fillColor,
     this.validator,
+    this.inputFormatters,
+    this.autovalidateMode,
     this.maxLines = 1,
     this.enabled = true,
   });
@@ -32,6 +35,8 @@ class AppTextField extends StatelessWidget {
   final String? helperText;
   final Color? fillColor;
   final String? Function(String?)? validator;
+  final List<TextInputFormatter>? inputFormatters;
+  final AutovalidateMode? autovalidateMode;
   final int maxLines;
   final bool enabled;
 
@@ -50,6 +55,8 @@ class AppTextField extends StatelessWidget {
           obscureText: obscureText,
           keyboardType: keyboardType,
           validator: validator,
+          inputFormatters: inputFormatters,
+          autovalidateMode: autovalidateMode,
           maxLines: maxLines,
           enabled: enabled,
           style: TextStyle(fontSize: 13.5, color: AppColors.ink),

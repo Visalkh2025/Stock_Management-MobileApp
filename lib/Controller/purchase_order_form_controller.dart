@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:stock_management/Config/permissions.dart';
+import 'package:stock_management/Controller/profile_controller.dart';
 import 'package:stock_management/Controller/stock_controller.dart';
 import 'package:stock_management/Controller/stock_line.dart';
 import 'package:stock_management/Model/lookup_models.dart';
@@ -144,9 +144,12 @@ class PurchaseOrderFormController extends GetxController {
   final warehouse = Rxn<LookupOption>();
   final lines = <PoLine>[].obs;
 
-  /// A Manager must pick who approves. Admin / Super Admin don't: their
-  /// order is approved as soon as it is submitted.
-  bool get needsApprover => !can(Perm.poApprove);
+  /// Super Admin, Admin and Manager don't send the order to anyone: it is
+  /// approved as soon as it is submitted. Anyone else must pick who approves.
+  bool get needsApprover {
+    final roles = Get.isRegistered<ProfileController>() ? Get.find<ProfileController>().roles : const <String>[];
+    return !roles.any(const {'SUPER_ADMIN', 'ADMIN', 'MANAGER'}.contains);
+  }
   final approvers = <LookupOption>[].obs;
   final approver = Rxn<LookupOption>();
 
