@@ -63,5 +63,7 @@ class CustomersController extends GetxController {
 
   void setSearch(String value) => searchText.value = value;
 
-  Future<void> openCustomer(CustomerRow customer) => Get.toNamed(Routes.customerDetail, arguments: customer.id);
+  Future<void> openCustomer(CustomerRow customer) async {
+    await Get.toNamed(Routes.customerDetail, arguments: customer.id);
+  }
 }
