@@ -214,7 +214,8 @@ class ProfileScreen extends GetView<ProfileController> {
             validator: (v) => (v == null || v.trim().isEmpty) ? 'validation_required'.tr : null,
           ),
           const SizedBox(height: 14),
-          AppTextField(label: 'field_role_title'.tr, controller: controller.roleController),
+          // Your role is set by an administrator, so it is shown but cannot be changed here.
+          AppTextField(label: 'field_role_title'.tr, controller: controller.roleController, enabled: false),
           const SizedBox(height: 14),
           AppTextField(
             label: 'field_email'.tr,
@@ -230,7 +231,7 @@ class ProfileScreen extends GetView<ProfileController> {
           const SizedBox(height: 14),
           AppTextField(label: 'field_phone'.tr, controller: controller.phoneController, keyboardType: TextInputType.phone),
           const SizedBox(height: 24),
-          AppButton(label: 'action_save_changes'.tr, onPressed: controller.save),
+          Obx(() => AppButton(label: 'action_save_changes'.tr, isLoading: controller.isSaving.value, onPressed: controller.isSaving.value ? null : controller.save)),
           const SizedBox(height: 10),
           AppButton(label: 'action_cancel'.tr, variant: AppButtonVariant.secondary, onPressed: controller.cancelEditing),
         ],
@@ -241,6 +242,8 @@ class ProfileScreen extends GetView<ProfileController> {
   Widget get _avatarPicker {
     return Obx(() {
       final image = controller.draftAvatar.value;
+      final savedUrl = controller.profile.value.avatarUrl;
+      final hasSaved = image == null && savedUrl != null && savedUrl.isNotEmpty;
       return GestureDetector(
         onTap: _showAvatarSourceSheet,
         child: Stack(
@@ -253,10 +256,14 @@ class ProfileScreen extends GetView<ProfileController> {
                 shape: BoxShape.circle,
                 color: AppColors.pageBg,
                 border: Border.all(color: AppColors.brand700.withAlpha(30)),
-                image: image != null ? DecorationImage(image: FileImage(image), fit: BoxFit.cover) : null,
+                image: image != null
+                    ? DecorationImage(image: FileImage(image), fit: BoxFit.cover)
+                    : hasSaved
+                        ? DecorationImage(image: NetworkImage(savedUrl!), fit: BoxFit.cover)
+                        : null,
               ),
               alignment: Alignment.center,
-              child: image == null
+              child: (image == null && !hasSaved)
                   ? Text(
                       controller.profile.value.initials,
                       style: TextStyle(fontSize: 26, fontWeight: FontWeight.w700, color: AppColors.brand700),

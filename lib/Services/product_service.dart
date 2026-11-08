@@ -108,6 +108,8 @@ class ProductService {
     required bool increase,
     required String reason,
     String? location,
+    /// 'IN' / 'OUT' labels the movement as Stock In / Stock Out in the history; null = a normal adjustment.
+    String? movementType,
   }) async {
     await _apiClient.post(
       ApiConfig.stockAdjustments,
@@ -118,6 +120,7 @@ class ProductService {
         'adjustmentType': increase ? 'INCREASE' : 'DECREASE',
         'quantity': quantity,
         'reason': reason,
+        if (movementType != null) 'movementType': movementType,
         if (location != null && location.trim().isNotEmpty) 'location': location.trim(),
       },
     );

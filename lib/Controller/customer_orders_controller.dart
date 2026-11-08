@@ -3,6 +3,7 @@ import 'package:stock_management/Config/routes/app_routes.dart';
 import 'package:stock_management/Model/customer_order_models.dart';
 import 'package:stock_management/Services/api_exception.dart';
 import 'package:stock_management/Services/customer_order_service.dart';
+import 'package:stock_management/Services/order_watcher.dart';
 import 'package:stock_management/View/Components/date_filter_bar.dart';
 
 /// More > Customer Orders — every customer order with a status filter, a date
@@ -31,6 +32,8 @@ class CustomerOrdersController extends GetxController {
     errorMessage.value = null;
     try {
       orders.assignAll(await _service.fetchAll());
+      // The orders waiting for review are in front of you now: the bell number drops.
+      OrderWatcher.instance.markSeen(orders.where((o) => o.status == CoStatus.pendingReview).map((o) => o.id));
     } on ApiException catch (e) {
       errorMessage.value = e.message;
     } catch (e) {

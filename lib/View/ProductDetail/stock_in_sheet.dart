@@ -99,6 +99,7 @@ class _StockInSheetState extends State<StockInSheet> {
         quantity: int.parse(_quantityController.text.trim()),
         increase: true,
         reason: 'Restock',
+        movementType: 'IN',
         location: _locationController.text,
       );
       await widget.onDone();

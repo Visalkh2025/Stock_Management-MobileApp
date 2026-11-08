@@ -10,6 +10,7 @@ import 'package:stock_management/Controller/request_controller.dart';
 import 'package:stock_management/Controller/stock_controller.dart';
 import 'package:stock_management/Model/auth_models.dart';
 import 'package:stock_management/Model/profile_models.dart';
+import 'package:stock_management/Services/api_exception.dart';
 import 'package:stock_management/Services/auth_service.dart';
 import 'package:stock_management/View/Components/app_snackbar.dart';
 
@@ -61,12 +62,16 @@ class ProfileController extends GetxController {
 
   final _picker = ImagePicker();
 
+  final isSaving = false.obs;
+
   void startEditing() {
-    // The backend has a CreateUserDto/UpdateUserDto for profile fields but no endpoint wired up yet to actually save an edit (no `PATCH/PUT /users/me`, no avatar upload) — so editing would silently do nothing useful.
-    AppSnackbar.warning(
-      'coming_soon_title'.tr,
-      'profile_edit_coming_soon_message'.tr,
-    );
+    final p = profile.value;
+    nameController.text = p.name;
+    roleController.text = p.role;
+    emailController.text = p.email;
+    phoneController.text = p.phone ?? '';
+    draftAvatar.value = null;
+    isEditing.value = true;
   }
 
   void cancelEditing() => isEditing.value = false;
@@ -76,23 +81,38 @@ class ProfileController extends GetxController {
     if (picked != null) draftAvatar.value = File(picked.path);
   }
 
+  /// Drops the photo just picked (the saved photo stays until a new one is uploaded).
   void removeAvatar() => draftAvatar.value = null;
 
-  void save() {
+  /// Saves name / email / phone (and the new photo, if one was picked) on the server.
+  Future<void> save() async {
+    if (isSaving.value) return;
     if (!(formKey.currentState?.validate() ?? false)) return;
-    profile.value = profile.value.copyWith(
-      name: nameController.text.trim(),
-      role: roleController.text.trim(),
-      email: emailController.text.trim(),
-      phone: phoneController.text.trim(),
-      avatarImage: draftAvatar.value,
-      clearAvatar: draftAvatar.value == null,
-    );
-    isEditing.value = false;
-    AppSnackbar.success(
-      'profile_updated_title'.tr,
-      'profile_updated_message'.tr,
-    );
+    isSaving.value = true;
+    try {
+      var user = await _authService.updateProfile(
+        name: nameController.text.trim(),
+        email: emailController.text.trim(),
+        phone: phoneController.text.trim(),
+      );
+      final photo = draftAvatar.value;
+      if (photo != null) user = await _authService.uploadAvatar(photo);
+      profile.value = UserProfileData(
+        name: user.fullName,
+        role: profile.value.role,
+        email: user.email,
+        phone: user.phone,
+        avatarUrl: user.avatarUrl,
+      );
+      isEditing.value = false;
+      AppSnackbar.success('profile_updated_title'.tr, 'profile_updated_message'.tr);
+    } on ApiException catch (e) {
+      AppSnackbar.error('profile_update_failed'.tr, e.message);
+    } catch (e) {
+      AppSnackbar.error('profile_update_failed'.tr, '$e');
+    } finally {
+      isSaving.value = false;
+    }
   }
 
   Future<void> signOut() async {

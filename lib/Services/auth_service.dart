@@ -1,7 +1,10 @@
+import 'dart:io';
+
 import 'package:stock_management/Config/api_config.dart';
 import 'package:stock_management/Model/auth_models.dart';
 import 'package:stock_management/Services/api_client.dart';
 import 'package:stock_management/Services/api_exception.dart';
+import 'package:stock_management/Services/image_upload.dart';
 import 'package:stock_management/Services/token_storage_service.dart';
 
 /// Everything auth-related: sign in, sign out, and the stored session.
@@ -72,6 +75,20 @@ class AuthService {
         return null;
       }
     }
+  }
+
+  /// `PATCH /users/me`: the signed-in person changes their own name, email
+  /// and phone. Returns the updated user.
+  Future<AuthUser> updateProfile({required String name, required String email, required String phone}) async {
+    final json = await _apiClient.patch(ApiConfig.me, body: {'fullName': name, 'email': email, 'phone': phone});
+    return AuthUser.fromJson(json as Map<String, dynamic>);
+  }
+
+  /// `POST /users/me/avatar`: replaces the profile photo. Returns the updated user.
+  Future<AuthUser> uploadAvatar(File image) async {
+    final file = await imageMultipart('image', image);
+    final json = await _apiClient.postMultipart('${ApiConfig.me}/avatar', fields: const {}, files: [file]);
+    return AuthUser.fromJson(json as Map<String, dynamic>);
   }
 
   Future<AuthUser> _fetchMe() async {

@@ -326,7 +326,7 @@ abstract class StockFormController extends GetxController {
   }
 
   /// Shared by Stock In/Out and Adjust for the direct path.
-  Future<void> adjustDirect(StockLine line, {required bool increase, required String reason}) {
+  Future<void> adjustDirect(StockLine line, {required bool increase, required String reason, String? movementType}) {
     return ProductService().adjustStock(
       productCode: line.product.value!.code!,
       variantCode: line.variant.value?.code,
@@ -334,6 +334,7 @@ abstract class StockFormController extends GetxController {
       quantity: line.enteredQty.value!,
       increase: increase,
       reason: reason,
+      movementType: movementType,
     );
   }
 

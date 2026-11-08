@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import 'package:stock_management/Model/customer_order_models.dart';
 import 'package:stock_management/Services/api_exception.dart';
 import 'package:stock_management/Services/customer_order_service.dart';
+import 'package:stock_management/Services/order_watcher.dart';
 import 'package:stock_management/View/Components/app_snackbar.dart';
 import 'package:stock_management/View/CustomerOrders/co_dialogs.dart';
 
@@ -30,6 +31,7 @@ class CustomerOrderDetailController extends GetxController {
     errorMessage.value = null;
     try {
       order.value = await _service.fetchOne(orderId);
+      OrderWatcher.instance.markSeen([orderId]);
     } on ApiException catch (e) {
       errorMessage.value = e.message;
     } catch (e) {

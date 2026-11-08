@@ -105,5 +105,5 @@ class StockMovementController extends StockFormController {
       };
 
   @override
-  Future<void> submitDirectLine(StockLine line) => adjustDirect(line, increase: direction.isIn, reason: _reason);
+  Future<void> submitDirectLine(StockLine line) => adjustDirect(line, increase: direction.isIn, reason: _reason, movementType: direction.isIn ? 'IN' : 'OUT');
 }

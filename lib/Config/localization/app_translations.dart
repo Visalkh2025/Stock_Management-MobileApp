@@ -614,6 +614,7 @@ class AppTranslations extends Translations {
     'value_not_set': 'Not set',
     'profile_updated_title': 'Profile updated',
     'profile_updated_message': 'Your changes have been saved.',
+    'profile_update_failed': 'Could not update profile',
 
     // Help & support
     'section_faq': 'Frequently asked questions',
@@ -1432,6 +1433,7 @@ class AppTranslations extends Translations {
     'value_not_set': 'មិនទាន់កំណត់',
     'profile_updated_title': 'បានធ្វើបច្ចុប្បន្នភាពប្រវត្តិរូប',
     'profile_updated_message': 'ការផ្លាស់ប្តូររបស់អ្នកត្រូវបានរក្សាទុក។',
+    'profile_update_failed': 'មិនអាចធ្វើបច្ចុប្បន្នភាពប្រវត្តិរូបបានទេ',
 
     // Help & support
     'section_faq': 'សំណួរដែលសួរញឹកញាប់',
