@@ -23,8 +23,6 @@ class LoginScreen extends GetView<LoginController> {
                 _logoHeader,
                 const SizedBox(height: 27.5),
                 _loginCard,
-                const SizedBox(height: 22),
-                _contactAdminNote,
               ],
             ),
           ),
@@ -129,19 +127,6 @@ class LoginScreen extends GetView<LoginController> {
           ],
         ),
       ),
-    );
-  }
-
-  Widget get _contactAdminNote {
-    return Text.rich(
-      TextSpan(
-        style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w500, color: Color(0xFF9C99AD)),
-        children: [
-          TextSpan(text: 'no_account_prefix'.tr),
-          TextSpan(text: 'action_contact_admin'.tr, style: TextStyle(fontWeight: FontWeight.w700, color: AppColors.brand100)),
-        ],
-      ),
-      textAlign: TextAlign.center,
     );
   }
 }
