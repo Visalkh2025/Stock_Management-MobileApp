@@ -24,6 +24,7 @@ class ApiConfig {
   static const String me = '/users/me';
   static const String users = '/users';
   static String userRole(String userId) => '/users/$userId/role';
+  static String userDeactivate(String userId) => '/users/$userId/deactivate';
 
   // ---- Roles ----
   static const String roles = '/roles';

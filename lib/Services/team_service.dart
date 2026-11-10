@@ -52,6 +52,11 @@ class TeamService {
     return CreatedMember.fromJson(json as Map<String, dynamic>);
   }
 
+  /// `PATCH /users/:id/deactivate` — the member can no longer sign in; history is kept.
+  Future<void> deactivateMember(String userId) async {
+    await _apiClient.patch(ApiConfig.userDeactivate(userId));
+  }
+
   Future<void> updateRole({required String userId, required String roleId}) async {
     await _apiClient.put(ApiConfig.userRole(userId), body: {'roleId': roleId});
   }

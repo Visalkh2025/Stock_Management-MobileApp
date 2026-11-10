@@ -8,6 +8,7 @@ class TeamMemberData {
     this.id,
     this.staffId,
     this.roleId,
+    this.status,
   });
 
   final String name;
@@ -17,6 +18,11 @@ class TeamMemberData {
   final String? id;
   final String? staffId;
   final String? roleId;
+
+  /// `ACTIVE`, `INACTIVE` or `LOCKED`.
+  final String? status;
+
+  bool get isInactive => status?.toUpperCase() == 'INACTIVE';
 
   /// Maps one item of `GET /users`'s `data` array: `profile` holds the
   /// name/email/phone and `userRoles[0].role` the (single) assigned role.
@@ -38,6 +44,7 @@ class TeamMemberData {
       phone: profile['phone']?.toString(),
       roleName: role?['name']?.toString() ?? '',
       roleId: role?['id']?.toString(),
+      status: json['status']?.toString(),
     );
   }
 
