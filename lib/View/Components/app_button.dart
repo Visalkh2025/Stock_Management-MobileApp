@@ -42,7 +42,15 @@ class AppButton extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               if (icon != null) ...[Icon(icon, size: 16), const SizedBox(width: 8)],
-              Text(label, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
+              Flexible(
+                child: Text(
+                  label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  softWrap: false,
+                  style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
+                ),
+              ),
             ],
           );
 
@@ -54,6 +62,7 @@ class AppButton extends StatelessWidget {
             disabledBackgroundColor: AppColors.brand600.withValues(alpha: 0.6),
             foregroundColor: Colors.white,
             elevation: 0,
+            padding: const EdgeInsets.symmetric(horizontal: 12),
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           ),
           child: child,
@@ -64,6 +73,7 @@ class AppButton extends StatelessWidget {
             foregroundColor: AppColors.ink,
             backgroundColor: AppColors.cardBg,
             side: BorderSide(color: AppColors.border),
+            padding: const EdgeInsets.symmetric(horizontal: 12),
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           ),
           child: child,
